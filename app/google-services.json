@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "744419240953",
+    "project_id": "dish-dash-6800c",
+    "storage_bucket": "dish-dash-6800c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:744419240953:android:e5806804330bf2df1b6b28",
+        "android_client_info": {
+          "package_name": "com.carrozzino.dishdash"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "744419240953-se4osvsc5ufslk4mea7eksbnerm3017o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.carrozzino.dishdash",
+            "certificate_hash": "a8e1e53f01a7bb03d874a2cddaff7f5eb4d14d72"
+          }
+        },
+        {
+          "client_id": "744419240953-1vupp650msctrlsj1m203u2mvjdfeerb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqiZ7DD0ymc-rK88JzDN2hArFCXNyyk5w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "744419240953-1vupp650msctrlsj1m203u2mvjdfeerb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
