@@ -9,7 +9,8 @@ data class RecipeModel (
     val sideIngredients : String = "",
     val mainRecipe : String = "",
     val sideRecipe : String = "",
-    val urlImage : String = ""
+    val urlImage : String = "",
+    val idImage : Int = 0
 )
 
 data class RecipeDayModel (

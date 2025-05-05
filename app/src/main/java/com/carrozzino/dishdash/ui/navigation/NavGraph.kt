@@ -8,6 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.carrozzino.dishdash.ui.screen.AddingScreen
 import com.carrozzino.dishdash.ui.screen.AddingScreenPresentation
+import com.carrozzino.dishdash.ui.screen.CalendarScreen
+import com.carrozzino.dishdash.ui.screen.GenerationScreen
 import com.carrozzino.dishdash.ui.screen.LoginScreen
 import com.carrozzino.dishdash.ui.screen.MainScreen
 import com.carrozzino.dishdash.ui.viewModels.LoginViewModel
@@ -17,6 +19,8 @@ sealed class Screen(val route : String) {
     data object Home : Screen("Home")
     data object Login : Screen("Login")
     data object Adding : Screen("Adding")
+    data object Generate : Screen("Generating")
+    data object Calendar : Screen("Calendar")
 }
 
 @Composable
@@ -54,6 +58,26 @@ fun SetupNavGraph(
             route = Screen.Adding.route
         ) {
             AddingScreen(
+                modifier = modifier,
+                navController = navController,
+                viewModel = main
+            )
+        }
+
+        composable(
+            route = Screen.Generate.route
+        ) {
+            GenerationScreen(
+                modifier = modifier,
+                navController = navController,
+                viewModel = main
+            )
+        }
+
+        composable(
+            route = Screen.Calendar.route
+        ) {
+            CalendarScreen(
                 modifier = modifier,
                 navController = navController,
                 viewModel = main

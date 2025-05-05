@@ -5,11 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,21 +46,21 @@ class MainActivity : ComponentActivity() {
         var startingRoute : Screen = Screen.Login
         if(!preferences.isLogged()) {
             loginViewModel.value.loginFromActivity = ::login
-        } else startingRoute = Screen.Home
+        } else startingRoute = Screen.Calendar
 
         setContent {
             navController = rememberNavController()
 
             DishDashTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
-                    SetupNavGraph(
-                        modifier = Modifier.padding(innerPadding).fillMaxSize(),
-                        navController = navController,
-                        start = startingRoute,
-                        login = loginViewModel.value
-                    )
-
+                    CompositionLocalProvider(LocalInnerPadding provides innerPadding) {
+                        SetupNavGraph(
+                            modifier = Modifier.padding(innerPadding),
+                            navController = navController,
+                            start = startingRoute,
+                            login = loginViewModel.value
+                        )
+                    }
                 }
             }
         }
@@ -68,6 +71,8 @@ class MainActivity : ComponentActivity() {
         firebaseAuth.signInWithGoogle(this, callback)
     }
 }
+
+val LocalInnerPadding = compositionLocalOf { PaddingValues() }
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {

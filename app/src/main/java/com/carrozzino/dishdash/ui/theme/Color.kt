@@ -29,3 +29,16 @@ val YellowDark = Color(0xFF705928)
 
 val BlackOpacity = Color(0x9F171717)
 val Gray = Color(0xADD3D3D3)
+
+
+val Back1 = Color(0xFFACCEF3)
+val Back2 = Color(0xFFEAB6B2)
+val Back3 = Color(0xFFE8DAB1)
+val Back4 = Color(0xFFB6ECB8)
+val Back5 = Color(0xFFCFC1EC)
+
+val BackDark1 = Color(0xFF111518)
+val BackDark2 = Color(0xFF1E1716)
+val BackDark3 = Color(0xFF1E1C17)
+val BackDark4 = Color(0xFF202A21)
+val BackDark5 = Color(0xFF201D23)

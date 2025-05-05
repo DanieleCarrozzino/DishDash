@@ -37,11 +37,13 @@ import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 
 @Composable
 fun GenerationScreen(
+    modifier : Modifier = Modifier,
     viewModel : MainViewModel = hiltViewModel<MainViewModel>(),
     navController : NavController = rememberNavController(),
     navigate : () -> Unit = {}
 ) {
     GenerationCore(
+        modifier = modifier,
         click = viewModel::onReceive,
         navigate = navigate
     )
@@ -49,10 +51,11 @@ fun GenerationScreen(
 
 @Composable
 fun GenerationCore(
+    modifier : Modifier = Modifier,
     click : (intent : Intent) -> Unit = {},
     navigate : () -> Unit = {}
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
 
         Box(modifier = Modifier
             .padding(15.dp)

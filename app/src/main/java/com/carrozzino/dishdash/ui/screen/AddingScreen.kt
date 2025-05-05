@@ -60,6 +60,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
@@ -93,6 +94,7 @@ import com.carrozzino.dishdash.ui.viewModels.AddingState
 import com.carrozzino.dishdash.ui.viewModels.Intent
 import com.carrozzino.dishdash.ui.viewModels.Intent.OnImageSelected
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
+import com.carrozzino.dishdash.ui.viewModels.Recipe
 import java.io.File
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -242,12 +244,13 @@ fun LoadingVegetables(
 
 @Composable
 fun AddingScreenPresentation(
+    modifier : Modifier = Modifier,
     viewModel : MainViewModel = hiltViewModel<MainViewModel>(),
     navController : NavController = rememberNavController(),
     navigate : () -> Unit = {}
 ) {
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
 
         Box(modifier = Modifier
             .padding(15.dp)
@@ -259,8 +262,7 @@ fun AddingScreenPresentation(
                 Text(
                     modifier = Modifier,
                     text = "Add a New Recipe",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Text(
@@ -268,7 +270,7 @@ fun AddingScreenPresentation(
                         .padding(top = 10.dp),
                     text = "Recipes added here will be included in the pool " +
                             "used to generate your weekly menus.",
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }
@@ -288,8 +290,7 @@ fun AddingScreenPresentation(
         ) {
             Text(
                 text = "Create a new recipe!",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleSmall
             )
         }
 
@@ -358,15 +359,16 @@ fun AddingCore(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var titleRecipe by remember { mutableStateOf(state.title) }
-    var ingredients by remember { mutableStateOf(state.ingredients) }
-    var isSide by remember { mutableStateOf(state.isSide) }
-    val seasons = remember { mutableStateListOf<Int>().apply { addAll(state.seasons) } }
+    var titleRecipe by remember { mutableStateOf(state.recipe.title) }
+    var ingredients by remember { mutableStateOf(state.recipe.ingredients) }
+    var isSide by remember { mutableStateOf(state.recipe.isSide) }
+    var needASide by remember { mutableStateOf(state.recipe.needASide) }
+    val seasons = remember { mutableStateListOf<Int>().apply { addAll(state.recipe.seasons) } }
 
-    var urlImage by remember { mutableStateOf(state.url) }
+    var urlImage by remember { mutableStateOf(state.recipe.url) }
 
     var uri by remember { mutableStateOf<Uri?>(state.uri) }
-    var bitmap by remember { mutableStateOf<ImageBitmap?>(state.image) }
+    var bitmap by remember { mutableStateOf<ImageBitmap?>(state.recipe.image) }
 
     // Launcher to take a picture and save the bitmap
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -415,16 +417,13 @@ fun AddingCore(
             Text(
                 modifier = Modifier.padding(start = 18.dp, top = 8.dp),
                 text = "Adding recipe",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleLarge
             )
 
             Text(
                 modifier = Modifier.padding(start = 18.dp, bottom = 4.dp),
                 text = "adding a new recipe or just a new side for your wonderful combination",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 15.sp
+                style = MaterialTheme.typography.titleMedium
             )
 
             Box(
@@ -497,18 +496,18 @@ fun AddingCore(
 
             TitleAndTextField(
                 title = "Url of the main image",
-                text = state.url
+                text = state.recipe.url
             ) { urlImage = it }
             Spacer(modifier = Modifier.height(5.dp))
             TitleAndTextField(
                 title = "Title of the recipe",
-                text = state.title,
+                text = state.recipe.title,
                 error = state.error) { titleRecipe = it }
             Spacer(modifier = Modifier.height(5.dp))
             TitleAndTextField(
                 title = "Ingredients of the recipe",
                 lines = 10,
-                text = state.ingredients,
+                text = state.recipe.ingredients,
                 error = state.error
             ) { ingredients = it }
 
@@ -518,9 +517,7 @@ fun AddingCore(
                 Text(
                     modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
                     text = "Is it a side this recipe?",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 15.sp
+                    style = MaterialTheme.typography.titleSmall
                 )
 
                 Switch(
@@ -532,13 +529,31 @@ fun AddingCore(
                 )
             }
 
+            Row(modifier = Modifier
+                .padding(horizontal = 18.dp)
+                .alpha(if(isSide) 0.5f else 1f)
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
+                    text = "Does it need a side?",
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+                Switch(
+                    modifier = Modifier.padding(start = 6.dp),
+                    enabled = !isSide,
+                    checked = needASide,
+                    onCheckedChange = {
+                        needASide = it
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.height(5.dp))
             Text(
                 modifier = Modifier.padding(start = 18.dp, bottom = 4.dp, top = 4.dp),
                 text = "Seasons for this recipe",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 15.sp
+                style = MaterialTheme.typography.titleSmall
             )
 
             Row(modifier = Modifier.padding(horizontal = 18.dp)) {
@@ -579,11 +594,14 @@ fun AddingCore(
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 onClick = {
                     click(Intent.OnRecipeSaved(
-                        title = titleRecipe,
-                        ingredients = ingredients,
-                        isSide = isSide,
-                        seasons = seasons,
-                        url = urlImage
+                        Recipe(
+                            title = titleRecipe,
+                            ingredients = ingredients,
+                            isSide = isSide,
+                            seasons = seasons,
+                            url = urlImage,
+                            needASide = needASide
+                        )
                     ))
                 }) {
                 Icon(
@@ -593,7 +611,7 @@ fun AddingCore(
                     tint = White90
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = "add")
+                Text(text = "add", color = White90)
             }
 
             Button(
@@ -619,7 +637,7 @@ fun AddingCore(
                     tint = White90
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(text = "delete")
+                Text(text = "delete", color = White90)
             }
         }
     }
@@ -649,8 +667,7 @@ fun CheckBoxTitle(
                 modifier = Modifier
                     .padding(start = 3.dp, bottom = 6.dp, top = 3.dp, end = 3.dp),
                 text = title,
-                fontSize = 13.sp,
-                lineHeight = 14.sp)
+                style = MaterialTheme.typography.titleSmall)
 
             Checkbox(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -676,9 +693,7 @@ fun TitleAndTextField(
     Text(
         modifier = Modifier.padding(start = 18.dp, bottom = 4.dp, top = 4.dp),
         text = title,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 15.sp)
+        style = MaterialTheme.typography.titleSmall)
 
     TextField(
         modifier = Modifier.padding(horizontal = 18.dp).fillMaxWidth(),
