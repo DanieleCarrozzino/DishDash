@@ -28,7 +28,7 @@ class FirebaseFirestoreDatabaseImpl : FirebaseFirestoreDatabaseInterface {
                     result(task.result.count)
                 } else {
                     println(task.exception)
-                    result(-1)
+                    result(0)
                 }
             }
     }

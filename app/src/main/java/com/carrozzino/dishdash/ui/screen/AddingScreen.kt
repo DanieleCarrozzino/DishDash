@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.text.Layout
+import android.view.RoundedCorner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +23,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +36,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -52,11 +59,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,11 +101,16 @@ import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.Red50
 import com.carrozzino.dishdash.ui.theme.White90
+import com.carrozzino.dishdash.ui.theme.Yellow
+import com.carrozzino.dishdash.ui.utility.listImages
 import com.carrozzino.dishdash.ui.viewModels.AddingState
 import com.carrozzino.dishdash.ui.viewModels.Intent
 import com.carrozzino.dishdash.ui.viewModels.Intent.OnImageSelected
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import com.carrozzino.dishdash.ui.viewModels.Recipe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -102,20 +118,16 @@ import kotlin.math.sin
 import kotlin.times
 import kotlin.unaryMinus
 
-@Preview
-@Composable
-fun AddingScreenPresentationPreview() {
-    AddingScreenPresentation()
-}
 
 @Composable
 fun LoadingVegetables(
+    modifier : Modifier = Modifier,
     listOfImages : List<Int> = listOf<Int>(
         R.drawable.tomato, R.drawable.carrot, R.drawable.broccolo, R.drawable.mushroom
     )
 ) {
     val offsetX = 120
-    val offsetY = 60
+    val offsetY = 240
 
     val infiniteTransition = rememberInfiniteTransition()
     val angle by infiniteTransition.animateFloat(
@@ -177,7 +189,7 @@ fun LoadingVegetables(
     val offset4X = cos(rad4).toFloat()
     val offset4Y = sin(rad4).toFloat()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = listOfImages[0]),
             contentDescription = null,
@@ -243,104 +255,116 @@ fun LoadingVegetables(
 }
 
 @Composable
-fun AddingScreenPresentation(
-    modifier : Modifier = Modifier,
-    viewModel : MainViewModel = hiltViewModel<MainViewModel>(),
-    navController : NavController = rememberNavController(),
-    navigate : () -> Unit = {}
-) {
-
-    Box(modifier = modifier.fillMaxSize()) {
-
-        Box(modifier = Modifier
-            .padding(15.dp)
-            .fillMaxWidth()
-            .shadow(4.dp, shape = RoundedCornerShape(10.dp))
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surface)) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    modifier = Modifier,
-                    text = "Add a New Recipe",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Text(
-                    modifier = Modifier
-                        .padding(top = 10.dp),
-                    text = "Recipes added here will be included in the pool " +
-                            "used to generate your weekly menus.",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-        }
-
-        LoadingVegetables()
-        
-        Button(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .zIndex(10f),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 5.dp
-            ),
-            onClick = {
-                navController.navigate(Screen.Adding.route)
-            }
-        ) {
-            Text(
-                text = "Create a new recipe!",
-                style = MaterialTheme.typography.titleSmall
-            )
-        }
-
-        Button(
-            modifier = Modifier
-                .padding(vertical = 18.dp, horizontal = 18.dp)
-                .align(Alignment.BottomEnd)
-                .zIndex(10f),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            ),
-            onClick = { navigate() }
-        ) {
-            Text(
-                text = "Go back\nto the Calendar",
-                textAlign = TextAlign.Center,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "navigate back button",
-                modifier = Modifier.size(ButtonDefaults.IconSize),
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-        }
-    }
-}
-
-@Composable
 fun AddingScreen(
     modifier : Modifier = Modifier,
     navController : NavController = rememberNavController(),
     viewModel : MainViewModel = hiltViewModel<MainViewModel>()
 ) {
     val addingState = viewModel.addingState.collectAsState().value
+    var state by remember { mutableIntStateOf(0) }
+
+    val coroutine = rememberCoroutineScope()
+    LaunchedEffect(key1 = addingState) {
+        if(state == 0 && addingState.uploading) {
+            state = 1
+        } else if(state == 1 && !addingState.uploading) {
+            coroutine.launch(Dispatchers.IO) {
+                delay(500)
+                state = if(addingState.error) 3 else 2
+                delay(2000)
+                state = 0
+            }
+        }
+    }
 
     AnimatedContent (
-        targetState = addingState.uploading
-    ) { uploading ->
-        if (uploading) {
-            LoadingVegetables()
-        } else {
+        targetState = state
+    ) { internal ->
+        if (internal == 0) {
             AddingCore(
                 modifier = modifier,
                 navController = navController,
                 state = addingState) { intent ->
                 viewModel.onReceive(intent = intent)
             }
+        } else if(internal == 1) {
+            // Loading
+            LoadingScreen("Uploading recipe...")
+        } else if(internal == 2) {
+            // Loaded
+            UploadedInfoScreen(
+                text = "Uploaded Successful!",
+                image = R.drawable.salad
+            )
+        } else {
+            // Error
+            UploadedInfoScreen(
+                text = "failed to upload the recipe :(",
+                image = R.drawable.bad_salad
+            )
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun LoadingScreenPreview() {
+    LoadingScreen("Uploading recipe...")
+}
+
+@Composable
+@Preview(showBackground = true)
+fun UploadedInfoScreenPreview() {
+    UploadedInfoScreen(
+        text = "Failed to upload the recipe :(",
+        image = R.drawable.bad_salad)
+}
+
+@Composable
+fun LoadingScreen(text : String) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LoadingVegetables()
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(10.dp)
+                .clip(RoundedCornerShape(15.dp))
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
+            Text(
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = 20.dp),
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun UploadedInfoScreen(text : String, image : Int) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(10.dp)
+        ) {
+            Image(
+                painter = painterResource(id = image),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .size(230.dp)
+            )
+
+            Text(
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = 20.dp),
+                text = text,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
         }
     }
 }
@@ -363,6 +387,7 @@ fun AddingCore(
     var ingredients by remember { mutableStateOf(state.recipe.ingredients) }
     var isSide by remember { mutableStateOf(state.recipe.isSide) }
     var needASide by remember { mutableStateOf(state.recipe.needASide) }
+    var idImage by remember { mutableIntStateOf(state.recipe.idImage) }
     val seasons = remember { mutableStateListOf<Int>().apply { addAll(state.recipe.seasons) } }
 
     var urlImage by remember { mutableStateOf(state.recipe.url) }
@@ -524,6 +549,7 @@ fun AddingCore(
                     modifier = Modifier.padding(start = 6.dp),
                     checked = isSide,
                     onCheckedChange = {
+                        if(it) needASide = false
                         isSide = it
                     }
                 )
@@ -547,6 +573,20 @@ fun AddingCore(
                         needASide = it
                     }
                 )
+            }
+
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                modifier = Modifier.padding(start = 18.dp, bottom = 4.dp, top = 4.dp),
+                text = "Image for this recipe",
+                style = MaterialTheme.typography.titleSmall
+            )
+            HorizontalImages(
+                modifier = Modifier
+                    .padding(start = 18.dp, end = 18.dp),
+                list = listImages,
+                selected = idImage) {
+                idImage = it
             }
 
             Spacer(modifier = Modifier.height(5.dp))
@@ -600,7 +640,8 @@ fun AddingCore(
                             isSide = isSide,
                             seasons = seasons,
                             url = urlImage,
-                            needASide = needASide
+                            needASide = needASide,
+                            idImage = idImage
                         )
                     ))
                 }) {
@@ -638,6 +679,41 @@ fun AddingCore(
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(text = "delete", color = White90)
+            }
+        }
+    }
+}
+
+@Composable
+fun HorizontalImages(
+    modifier : Modifier = Modifier,
+    list : List<Int> = listImages,
+    selected : Int = 0,
+    select : (Int) -> Unit = {}
+) {
+    val scrollState = rememberLazyListState()
+    LazyRow(
+        state = scrollState,
+        modifier = modifier) {
+        itemsIndexed(list) { index, image ->
+            val isSelected = index == selected
+            println("Daniele $index, $image, $selected, $isSelected")
+
+            Box(modifier = Modifier
+                .padding(3.dp)
+                .size(120.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .border(
+                    width = if(isSelected) 5.dp else 0.dp,
+                    color = if(isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp))
+                .clickable{ select(index) }
+            ) {
+                Image(
+                    modifier = Modifier.padding(15.dp).fillMaxSize(),
+                    painter = painterResource(image),
+                    contentDescription = "")
             }
         }
     }

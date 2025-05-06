@@ -31,11 +31,11 @@ val BlackOpacity = Color(0x9F171717)
 val Gray = Color(0xADD3D3D3)
 
 
-val Back1 = Color(0xFFACCEF3)
-val Back2 = Color(0xFFEAB6B2)
-val Back3 = Color(0xFFE8DAB1)
-val Back4 = Color(0xFFB6ECB8)
-val Back5 = Color(0xFFCFC1EC)
+val Back1 = Color(0xFFC0D9F5)
+val Back2 = Color(0xFFF8D0CD)
+val Back3 = Color(0xFFFAEECC)
+val Back4 = Color(0xFFC8F6CA)
+val Back5 = Color(0xFFDFD4F8)
 
 val BackDark1 = Color(0xFF111518)
 val BackDark2 = Color(0xFF1E1716)

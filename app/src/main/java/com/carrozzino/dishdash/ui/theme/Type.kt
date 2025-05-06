@@ -29,7 +29,7 @@ val Typography = Typography(
         fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 30.sp,
-        lineHeight = 32.sp,
+        lineHeight = 30.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
@@ -57,7 +57,7 @@ val Typography = Typography(
         fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 44.sp,
-        lineHeight = 46.sp,
+        lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
 )

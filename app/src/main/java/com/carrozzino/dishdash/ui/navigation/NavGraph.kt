@@ -7,7 +7,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.carrozzino.dishdash.ui.screen.AddingScreen
-import com.carrozzino.dishdash.ui.screen.AddingScreenPresentation
 import com.carrozzino.dishdash.ui.screen.CalendarScreen
 import com.carrozzino.dishdash.ui.screen.GenerationScreen
 import com.carrozzino.dishdash.ui.screen.LoginScreen

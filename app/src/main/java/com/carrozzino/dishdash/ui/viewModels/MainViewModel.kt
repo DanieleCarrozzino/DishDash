@@ -41,6 +41,11 @@ data class AddingState (
     var recipe : Recipe = Recipe()
 )
 
+data class GeneratingState (
+    var generating : Boolean = false,
+    var error : Boolean = false,
+)
+
 data class Recipe(
     var url : String = "",
     var title : String = "",
@@ -71,6 +76,9 @@ class MainViewModel @Inject constructor (
 
     private val _addingState = MutableStateFlow(AddingState())
     val addingState : StateFlow<AddingState> = _addingState.asStateFlow()
+
+    private val _generatingState = MutableStateFlow(GeneratingState())
+    val generatingState : StateFlow<GeneratingState> = _generatingState.asStateFlow()
 
     init {
         val days = getRemainingDaysWithDates()
@@ -193,6 +201,11 @@ class MainViewModel @Inject constructor (
     }
 
     fun generate() {
+        _generatingState.update {
+            it.copy(
+                generating = true,
+                error = false)}
+
         viewModelScope.launch(Dispatchers.IO) {
             val sizeSides = suspendCoroutine<Long> { block ->
                 firestore.size("total_side_recipes") { result ->
@@ -204,6 +217,13 @@ class MainViewModel @Inject constructor (
                 firestore.size("total_recipes") { result ->
                     block.resume(result)
                 }
+            }
+
+            if(sizeMain == 0L && sizeSides == 0L) {
+                _generatingState.update {
+                    it.copy(
+                        generating = false,
+                        error = true)}
             }
 
             val randomSides = (0..<sizeSides).shuffled().take(minOf(sizeSides, 5).toInt())
@@ -241,6 +261,12 @@ class MainViewModel @Inject constructor (
                 }
 
                 database.putValues("recipes_of_the_week", listOf(), index.toInt(), hash)
+                    .addOnCompleteListener { result ->
+                        _generatingState.update {
+                            it.copy(
+                                generating = false,
+                                error = !result.isSuccessful)}
+                    }
             }
         }
     }

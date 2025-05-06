@@ -1,132 +1,152 @@
 package com.carrozzino.dishdash.ui.screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.carrozzino.dishdash.R
-import com.carrozzino.dishdash.ui.navigation.Screen
-import com.carrozzino.dishdash.ui.viewModels.Intent
+import com.carrozzino.dishdash.ui.utility.listImages
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.animation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.carrozzino.dishdash.R
 
 @Composable
 fun GenerationScreen(
     modifier : Modifier = Modifier,
     viewModel : MainViewModel = hiltViewModel<MainViewModel>(),
-    navController : NavController = rememberNavController(),
-    navigate : () -> Unit = {}
+    navController : NavController = rememberNavController()
 ) {
+    val state = viewModel.generatingState.collectAsState().value
+    val coroutine = rememberCoroutineScope()
+
+    var internal by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(key1 = state) {
+        if(internal == 0 && state.generating) {
+            internal = 1
+        } else if(internal == 1 && !state.generating) {
+            coroutine.launch(Dispatchers.IO) {
+                delay(500)
+                internal = if(state.error) 3 else 2
+                delay(5000)
+                coroutine.launch(Dispatchers.Main) {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
+
     GenerationCore(
         modifier = modifier,
-        click = viewModel::onReceive,
-        navigate = navigate
-    )
+        state = internal)
+}
+
+@Composable
+fun GeneratingImageAnimation(
+    modifier : Modifier = Modifier,
+    coroutine : CoroutineScope = rememberCoroutineScope(),
+    error : Boolean = false
+) {
+
+    var id by remember { mutableIntStateOf((0..<listImages.size).random()) }
+    LaunchedEffect(key1 = Unit) {
+        coroutine.launch {
+            while(true) {
+                delay(2000)
+                id = (0..<listImages.size).random()
+            }
+        }
+    }
+
+    AnimatedContent(
+        targetState = id,
+        transitionSpec = { slideInHorizontally { fullWidth -> fullWidth / 3 } + fadeIn() togetherWith
+            slideOutHorizontally { fullWidth -> -fullWidth / 3 } + fadeOut()
+        }
+    ) { internal ->
+        FoodAvatar(
+            modifier = modifier,
+            list = listImages,
+            id = internal
+        )
+    }
+
+
 }
 
 @Composable
 fun GenerationCore(
     modifier : Modifier = Modifier,
-    click : (intent : Intent) -> Unit = {},
-    navigate : () -> Unit = {}
-) {
-    Box(modifier = modifier.fillMaxSize()) {
+    state : Int = 0) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)) {
 
-        Box(modifier = Modifier
-            .padding(15.dp)
-            .fillMaxWidth()
-            .shadow(4.dp, shape = RoundedCornerShape(10.dp))
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surface)) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    modifier = Modifier,
-                    text = "Generate a New Weekly Menu!",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+        Column(modifier = modifier.align(Alignment.Center)) {
+
+            Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Image(
+                    modifier = Modifier.size(24.dp).padding(end = 5.dp),
+                    painter = painterResource(R.drawable.carrot),
+                    contentDescription = ""
                 )
 
                 Text(
-                    modifier = Modifier
-                        .padding(top = 10.dp),
-                    text = "Generate a brand new weekly recipe list. " +
-                            "This action will replace your current week's recipes with a fresh selection",
-                    fontWeight = FontWeight.Bold
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = "creating new week",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
-        }
 
-        LoadingVegetables(
-            listOf(R.drawable.spaghetti, R.drawable.hamburger, R.drawable.burrito, R.drawable.meat)
-        )
-
-        Button(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .zIndex(10f),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 5.dp
-            ),
-            onClick = {
-                click(Intent.OnGenerateNewWeek)
-            }
-        ) {
             Text(
-                text = "Generate a new Week!",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Button(
-            modifier = Modifier
-                .padding(vertical = 18.dp, horizontal = 18.dp)
-                .align(Alignment.BottomStart)
-                .zIndex(10f),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            ),
-            onClick = { navigate() }
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "navigate back button",
-                modifier = Modifier.size(ButtonDefaults.IconSize),
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Go back\nto the Calendar",
+                text = when(state) {
+                    0 -> "We are Getting ALLL\nyour incredible recipes!"
+                    1 -> "What could be the best combination?"
+                    2 -> "Done! Your week is ready to be eaten!"
+                    3 -> "OOPS, something went wrong, my bad...\n(or check your connection)"
+                    else -> "" },
                 textAlign = TextAlign.Center,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground)
+
+            GeneratingImageAnimation(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
+
     }
 }
 

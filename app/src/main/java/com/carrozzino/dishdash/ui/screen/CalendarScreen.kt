@@ -113,7 +113,7 @@ fun CalendarCore(
                 date = state.recipes[page].date,
                 today = state.actualDate
             ) {
-                navController.navigate(Screen.Adding.route)
+                navController.navigate(Screen.Home.route)
             }
         }
     }
@@ -122,6 +122,7 @@ fun CalendarCore(
 @Composable
 fun FoodAvatar(
     modifier : Modifier = Modifier,
+    list : List<Int> = listImages,
     id : Int = 0
 ) {
     val offsetXSize = 20
@@ -153,7 +154,7 @@ fun FoodAvatar(
                 .graphicsLayer(
                     rotationZ = 10 * offsetX
                 ),
-            painter = painterResource(listImages[id]),
+            painter = painterResource(list[id]),
             contentDescription = ""
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -258,7 +259,7 @@ fun CalendarSingleCore(
                         modifier = Modifier.align(Alignment.CenterVertically),
                         text = if(isToday) "Recipe of Today" else date,
                         style = MaterialTheme.typography.titleSmall,
-                        color = White90
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -267,7 +268,7 @@ fun CalendarSingleCore(
                     text = recipe.main,
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
-                    color = White90
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -299,7 +300,7 @@ fun CalendarSingleCore(
                     text = "Ingredients",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = White90
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
@@ -308,7 +309,7 @@ fun CalendarSingleCore(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall,
-                    color = White90
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 if(recipe.side.isNotEmpty()) {
@@ -317,7 +318,7 @@ fun CalendarSingleCore(
                         text = "Side",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = White90
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     Text(
@@ -326,7 +327,7 @@ fun CalendarSingleCore(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleSmall,
-                        color = White90
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
