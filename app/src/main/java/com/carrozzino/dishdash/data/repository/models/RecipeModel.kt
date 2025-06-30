@@ -1,7 +1,5 @@
 package com.carrozzino.dishdash.data.repository.models
 
-import java.time.LocalDate
-
 data class RecipeModel (
     val main : String = "",
     val mainIngredients : String = "",

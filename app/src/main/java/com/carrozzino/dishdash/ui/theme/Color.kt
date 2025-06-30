@@ -22,8 +22,10 @@ val Black70 = Color(0xFF26231C)
 
 val White90 = Color(0xFFFFFFFF)
 val White70 = Color(0xFFFAFAFA)
-val Blue = Color(0xFF2196F3)
-val DarkBlue = Color(0xFF104A79)
+val Blue = Color(0xFFE3EAF1)
+val DarkBlue = Color(0xFF283346)
+val Green = Color(0xFF67C46B)
+val DarkGreen = Color(0xFF2D442E)
 val Yellow = Color(0xFFC2992D)
 val YellowDark = Color(0xFF705928)
 

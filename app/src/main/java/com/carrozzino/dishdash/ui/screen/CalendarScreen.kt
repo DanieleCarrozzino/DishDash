@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.carrozzino.dishdash.LocalInnerPadding
 import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.data.repository.models.RecipeModel
 import com.carrozzino.dishdash.ui.navigation.Screen
@@ -107,11 +106,11 @@ fun CalendarCore(
 
             if(state.recipes.size < page) return@HorizontalPager
 
-            CalendarSingleCore(
-                modifier = modifier,
-                recipe = state.recipes[page].recipeModel,
-                date = state.recipes[page].date,
-                today = state.actualDate
+            CalendarSingleCoreFullScreen (
+                modifier    = modifier,
+                recipe      = state.recipes[page].recipeModel,
+                date        = state.recipes[page].date,
+                today       = state.actualDate
             ) {
                 navController.navigate(Screen.Home.route)
             }
@@ -121,9 +120,10 @@ fun CalendarCore(
 
 @Composable
 fun FoodAvatar(
-    modifier : Modifier = Modifier,
-    list : List<Int> = listImages,
-    id : Int = 0
+    modifier    : Modifier = Modifier,
+    list        : List<Int> = listImages,
+    id          : Int = 0,
+    small       : Boolean = false,
 ) {
     val offsetXSize = 20
     val offsetYSize = 10
@@ -139,7 +139,7 @@ fun FoodAvatar(
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
-    val deltaSize = 2.5f
+    val deltaSize = if(small) 3.5f else 2.5f
 
     val rad = Math.toRadians(angle.toDouble())
     val offsetX = cos(rad).toFloat()
@@ -228,6 +228,29 @@ fun BottomButtons(modifier : Modifier = Modifier) {
 }
 
 @Composable
+fun CalendarSingleCoreFullScreen(
+    modifier : Modifier = Modifier,
+    recipe : RecipeModel = RecipeModel(),
+    date : String = "",
+    today : String = "",
+    navigate : () -> Unit = {}
+) {
+    val isToday = date == today
+
+    Box(modifier = Modifier.fillMaxSize().background(
+        getColorFromId(recipe.idImage, isSystemInDarkTheme()).copy(
+            alpha = if(isToday) 1f else 0.5f))) {
+        CalendarSingleCore(
+            modifier    = modifier,
+            recipe      = recipe,
+            date        = date,
+            today       = today,
+            navigate    = navigate
+        )
+    }
+}
+
+@Composable
 fun CalendarSingleCore(
     modifier : Modifier = Modifier,
     recipe : RecipeModel = RecipeModel(),
@@ -237,67 +260,79 @@ fun CalendarSingleCore(
 ) {
     val isToday = date == today
 
-    val innerPadding = LocalInnerPadding.current
-    Box(modifier = Modifier.fillMaxSize().background(
-        getColorFromId(recipe.idImage, isSystemInDarkTheme()).copy(
-        alpha = if(isToday) 1f else 0.5f
-    ))) {
+    Box(modifier = modifier.fillMaxSize()) {
 
-        Box(modifier = modifier.fillMaxSize()) {
-
-            Column(modifier = Modifier
-                .padding(vertical = 25.dp, horizontal = 20.dp)) {
-                Row {
-                    if(isToday)
-                        Image(
-                            modifier = Modifier.size(24.dp).padding(end = 5.dp),
-                            painter = painterResource(R.drawable.star),
-                            contentDescription = ""
-                        )
-
-                    Text(
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        text = if(isToday) "Recipe of Today" else date,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onBackground
+        Column(modifier = Modifier
+            .padding(vertical = 25.dp, horizontal = 20.dp)) {
+            Row {
+                if(isToday)
+                    Image(
+                        modifier = Modifier.size(24.dp).padding(end = 5.dp),
+                        painter = painterResource(R.drawable.star),
+                        contentDescription = ""
                     )
-                }
 
                 Text(
-                    modifier = Modifier,
-                    text = recipe.main,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = if(isToday) "Recipe of Today" else date,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
-            Box(modifier = Modifier
-                .padding(20.dp)
-                .align(Alignment.TopEnd)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable{ navigate() }) {
-                Icon(
-                    modifier = Modifier.padding(10.dp),
-                    imageVector = Icons.Rounded.Clear,
-                    contentDescription = "",
-                    tint = White90
-                )
-            }
+            Text(
+                modifier = Modifier,
+                text = recipe.main,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
-            FoodAvatar(
-                modifier = Modifier.align(Alignment.Center).alpha(if(isToday) 1f else 0.6f),
-                id = recipe.idImage
+        Box(modifier = Modifier
+            .padding(20.dp)
+            .align(Alignment.TopEnd)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable{ navigate() }) {
+            Icon(
+                modifier = Modifier.padding(10.dp),
+                imageVector = Icons.Rounded.Clear,
+                contentDescription = "",
+                tint = White90
+            )
+        }
+
+        FoodAvatar(
+            modifier = Modifier.align(Alignment.Center).alpha(if(isToday) 1f else 0.6f),
+            id = recipe.idImage
+        )
+
+        Column(modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(horizontal = 15.dp)) {
+
+            Text(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                text = "Ingredients",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
             )
 
-            Column(modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 15.dp)) {
+            Text(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                text = recipe.mainIngredients.replace("\n", ", "),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
+            if(recipe.side.isNotEmpty()) {
                 Text(
                     modifier = Modifier.padding(horizontal = 20.dp),
-                    text = "Ingredients",
+                    text = "Side",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -305,33 +340,103 @@ fun CalendarSingleCore(
 
                 Text(
                     modifier = Modifier.padding(horizontal = 20.dp),
-                    text = recipe.mainIngredients.replace("\n", ", "),
+                    text = "${recipe.side} - ${recipe.sideIngredients}",
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+            }
 
-                if(recipe.side.isNotEmpty()) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        text = "Side",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground
+            BottomButtons(modifier = Modifier)
+        }
+    }
+}
+
+@Composable
+fun CalendarSingleCoreMinimal(
+    modifier : Modifier = Modifier,
+    recipe : RecipeModel = RecipeModel(),
+    date : String = "",
+    today : String = "",
+) {
+    val isToday = date == today
+
+    Box(modifier = modifier.fillMaxSize()) {
+
+        Column(modifier = Modifier
+            .padding(vertical = 25.dp, horizontal = 20.dp)) {
+            Row {
+                if(isToday)
+                    Image(
+                        modifier = Modifier.size(24.dp).padding(end = 5.dp),
+                        painter = painterResource(R.drawable.star),
+                        contentDescription = ""
                     )
 
-                    Text(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        text = "${recipe.side} - ${recipe.sideIngredients}",
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
+                Text(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = if(isToday) "Recipe of Today" else date,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
 
-                BottomButtons(modifier = Modifier)
+            Text(
+                modifier = Modifier,
+                text = recipe.main,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        FoodAvatar(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .alpha(if(isToday) 1f else 0.6f),
+            id = recipe.idImage,
+            small = true
+        )
+
+        Column(modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(vertical = 25.dp, horizontal = 20.dp)) {
+
+            Text(
+                modifier = Modifier,
+                text = "Ingredients",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Text(
+                modifier = Modifier,
+                text = recipe.mainIngredients.replace("\n", ", "),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            if(recipe.side.isNotEmpty()) {
+                Text(
+                    modifier = Modifier,
+                    text = "Side",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+                    modifier = Modifier,
+                    text = "${recipe.side} - ${recipe.sideIngredients}",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
         }
     }

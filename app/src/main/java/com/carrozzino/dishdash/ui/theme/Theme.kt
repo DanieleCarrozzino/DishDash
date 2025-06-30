@@ -1,21 +1,16 @@
 package com.carrozzino.dishdash.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     background = Black90,
-    surface = Black70,
+    surface = DarkBlue,
     onBackground = White70,
-    primary = Blue,
+    primary = DarkGreen,
     error = Red20,
 
     onPrimary = Blue70,
@@ -23,14 +18,14 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = Red20
 )
 
-private val LightColorScheme = lightColorScheme(
+val LightColorScheme = lightColorScheme(
     background = White90,
-    surface = White70,
+    surface = Blue,
     onBackground = Black90,
     error = Red90,
 
 
-    primary = Blue,
+    primary = Green,
     secondary = PurpleGrey40,
     tertiary = Pink40
 

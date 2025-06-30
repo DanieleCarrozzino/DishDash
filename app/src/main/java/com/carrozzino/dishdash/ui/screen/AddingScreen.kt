@@ -1,19 +1,15 @@
 package com.carrozzino.dishdash.ui.screen
 
 import android.Manifest
-import android.R.attr.radius
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.text.Layout
-import android.view.RoundedCorner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -37,20 +33,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,7 +54,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,7 +65,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -83,10 +73,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -98,10 +86,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.carrozzino.dishdash.BuildConfig
 import com.carrozzino.dishdash.R
-import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.Red50
 import com.carrozzino.dishdash.ui.theme.White90
-import com.carrozzino.dishdash.ui.theme.Yellow
 import com.carrozzino.dishdash.ui.utility.listImages
 import com.carrozzino.dishdash.ui.viewModels.AddingState
 import com.carrozzino.dishdash.ui.viewModels.Intent
@@ -113,10 +99,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.cos
-import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.times
-import kotlin.unaryMinus
 
 
 @Composable
@@ -541,7 +524,7 @@ fun AddingCore(
             Row(modifier = Modifier.padding(horizontal = 18.dp)) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
-                    text = "Is it a side this recipe?",
+                    text = "Is this recipe a side?",
                     style = MaterialTheme.typography.titleSmall
                 )
 
@@ -717,11 +700,6 @@ fun HorizontalImages(
             }
         }
     }
-}
-
-@Composable
-fun CheckBoxTitlePreview() {
-    CheckBoxTitle(title = "Main title")
 }
 
 @Composable
