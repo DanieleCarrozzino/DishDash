@@ -367,6 +367,14 @@ fun CalendarSingleCoreMinimal(
         click()
     }) {
 
+        FoodAvatar(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .alpha(if(isToday) 1f else 0.6f),
+            id = recipe.idImage,
+            small = true
+        )
+
         Column(modifier = Modifier
             .padding(vertical = 25.dp, horizontal = 20.dp)) {
             Row {
@@ -393,14 +401,6 @@ fun CalendarSingleCoreMinimal(
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
-
-        FoodAvatar(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .alpha(if(isToday) 1f else 0.6f),
-            id = recipe.idImage,
-            small = true
-        )
 
         Column(modifier = Modifier
             .align(Alignment.BottomStart)
