@@ -359,10 +359,13 @@ fun CalendarSingleCoreMinimal(
     recipe : RecipeModel = RecipeModel(),
     date : String = "",
     today : String = "",
+    click : () -> Unit = {}
 ) {
     val isToday = date == today
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize().clickable {
+        click()
+    }) {
 
         Column(modifier = Modifier
             .padding(vertical = 25.dp, horizontal = 20.dp)) {

@@ -1,7 +1,6 @@
 package com.carrozzino.dishdash.ui.viewModels
 
 import android.net.Uri
-import android.widget.ImageButton
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +10,7 @@ import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageIn
 import com.carrozzino.dishdash.data.repository.models.RecipeDayModel
 import com.carrozzino.dishdash.data.repository.models.RecipeModel
 import com.carrozzino.dishdash.ui.utility.getActualDate
-import com.carrozzino.dishdash.ui.utility.getRemainingDaysWithDates
+import com.carrozzino.dishdash.ui.utility.getWeek
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
@@ -24,14 +23,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+enum class MainStatus {
+    DEFAULT,
+    EMPTY,
+    INITIALIZED,
+    REFRESHING
+}
+
 data class MainState (
-    val recipes : List<RecipeDayModel> = listOf<RecipeDayModel>(),
-    val actualDate : String = ""
+    val recipes : List<RecipeDayModel>  = listOf<RecipeDayModel>(),
+    val actualDate : String             = "",
+    val state : MainStatus              = MainStatus.DEFAULT
 )
 
 data class AddingState (
@@ -81,7 +87,7 @@ class MainViewModel @Inject constructor (
     val generatingState : StateFlow<GeneratingState> = _generatingState.asStateFlow()
 
     init {
-        val days = getRemainingDaysWithDates()
+        val days = getWeek()
 
         // Get the recipes from the real time database
         database.getValues("recipes_of_the_week", listOf())
@@ -91,13 +97,10 @@ class MainViewModel @Inject constructor (
                         .getValue(object : GenericTypeIndicator<ArrayList<HashMap<String, Any>>>() {})
                     if(values?.size != 5) return
 
-                    var startingIndex = 0.coerceAtLeast(values.size - days.size)
-                    val dates = days.map {
-                        val recipe = values[startingIndex]
-                        startingIndex++
-
-                        RecipeDayModel(
-                            date = it,
+                    val dates : MutableList<RecipeDayModel> = mutableListOf()
+                    values.forEachIndexed { index, recipe ->
+                        dates.add(RecipeDayModel(
+                            date = if(index < days.size) days[index] else "",
                             recipeModel = RecipeModel(
                                 main = recipe["main"].toString(),
                                 side = if(recipe.contains("side")) recipe["side"].toString() else "",
@@ -108,13 +111,16 @@ class MainViewModel @Inject constructor (
                                     recipe["idImage"].toString().isNotEmpty())
                                     recipe["idImage"].toString().toInt() else 0
                             )
-                        )
+                        ))
                     }
 
                     _mainState.update {
                         it.copy(
-                            recipes = dates,
-                            actualDate = getActualDate())}
+                            recipes     = dates,
+                            actualDate  = getActualDate(),
+                            state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED
+                        )
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {

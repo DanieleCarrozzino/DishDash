@@ -9,9 +9,11 @@ import androidx.compose.runtime.Composable
 val DarkColorScheme = darkColorScheme(
     background = Black90,
     surface = DarkBlue,
+    surfaceVariant = DarkBlue.copy(alpha = 0.7f),
     onBackground = White70,
     primary = DarkGreen,
     error = Red20,
+    outline = YellowDark,
 
     onPrimary = Blue70,
     secondary = Red50,
@@ -21,8 +23,10 @@ val DarkColorScheme = darkColorScheme(
 val LightColorScheme = lightColorScheme(
     background = White90,
     surface = Blue,
+    surfaceVariant = Blue.copy(alpha = 0.7f),
     onBackground = Black90,
     error = Red90,
+    outline = Yellow,
 
 
     primary = Green,

@@ -47,6 +47,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -531,6 +532,10 @@ fun AddingCore(
                 Switch(
                     modifier = Modifier.padding(start = 6.dp),
                     checked = isSide,
+                    colors = SwitchDefaults.colors(
+                        uncheckedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.primary
+                    ),
                     onCheckedChange = {
                         if(it) needASide = false
                         isSide = it
@@ -552,6 +557,10 @@ fun AddingCore(
                     modifier = Modifier.padding(start = 6.dp),
                     enabled = !isSide,
                     checked = needASide,
+                    colors = SwitchDefaults.colors(
+                        uncheckedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.primary
+                    ),
                     onCheckedChange = {
                         needASide = it
                     }

@@ -50,19 +50,20 @@ fun GenerationScreen(
     val state = viewModel.generatingState.collectAsState().value
     val coroutine = rememberCoroutineScope()
 
-    var internal by remember { mutableIntStateOf(0) }
+    var internal by remember { mutableIntStateOf(-1) }
 
     LaunchedEffect(key1 = state) {
-        if(internal == 0 && state.generating) {
+        if(internal < 0 && state.generating) {
+            internal = 0
+        }
+        else if(!state.generating) {
+            delay(3000)
             internal = 1
-        } else if(internal == 1 && !state.generating) {
-            coroutine.launch(Dispatchers.IO) {
-                delay(500)
-                internal = if(state.error) 3 else 2
-                delay(5000)
-                coroutine.launch(Dispatchers.Main) {
-                    navController.popBackStack()
-                }
+            delay(7000)
+            internal = if(state.error) 3 else 2
+            delay(4000)
+            coroutine.launch(Dispatchers.Main) {
+                navController.popBackStack()
             }
         }
     }
@@ -132,11 +133,12 @@ fun GenerationCore(
 
             Text(
                 text = when(state) {
-                    0 -> "We are Getting ALLL\nyour incredible recipes!"
-                    1 -> "What could be the best combination?"
-                    2 -> "Done! Your week is ready to be eaten!"
-                    3 -> "OOPS, something went wrong, my bad...\n(or check your connection)"
-                    else -> "" },
+                    0 -> "We’re picking the best recipes\njust for you... "
+                    1 -> "Mixing flavors...\nWhat’s the perfect combination? ️"
+                    2 -> "All set!\nYour delicious week is ready to enjoy!"
+                    3 -> "Oops! Something went wrong on our side...\n(or maybe check your connection)"
+                    else -> ""
+                },
                 textAlign = TextAlign.Center,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 style = MaterialTheme.typography.titleMedium,

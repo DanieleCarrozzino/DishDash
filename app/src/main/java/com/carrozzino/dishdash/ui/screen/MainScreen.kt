@@ -1,12 +1,18 @@
 package com.carrozzino.dishdash.ui.screen
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -15,8 +21,7 @@ import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,8 +29,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,9 +46,12 @@ import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Typography
+import com.carrozzino.dishdash.ui.utility.getColorFromId
 import com.carrozzino.dishdash.ui.viewModels.Intent
 import com.carrozzino.dishdash.ui.viewModels.MainState
+import com.carrozzino.dishdash.ui.viewModels.MainStatus
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
+import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @Composable
@@ -74,8 +82,7 @@ fun MainCore(
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)
     ) {
-
-        LoadingVegetables(modifier = Modifier.blur(20.dp))
+//        LoadingVegetables(modifier = Modifier.blur(20.dp))
 
         Box(modifier = modifier.fillMaxSize()) {
             Column(modifier = Modifier.padding(vertical = 25.dp, horizontal = 20.dp)) {
@@ -130,20 +137,77 @@ fun MainCore(
                     }
                 }
 
-                Box(modifier = Modifier
-                    .padding(top = 12.dp)
-                    .weight(1f)) {
-                    HorizontalWeek(
-                        state = state)
-                }
+                    AnimatedContent(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 12.dp)
+                            .weight(1f)
+                        ,
+                        targetState = state.state,
+                        label = "animated content"
+                    ) { targetState ->
+
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            when(targetState) {
+                                MainStatus.DEFAULT -> {
+                                    CircularProgressIndicator(
+                                        progress = { 100f },
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(40.dp)
+                                    )
+                                }
+
+                                MainStatus.INITIALIZED -> {
+                                    HorizontalWeek(
+                                        state = state,
+                                        navController = navController
+                                    )
+                                }
+
+                                MainStatus.REFRESHING -> {
+
+                                }
+
+                                MainStatus.EMPTY -> {
+                                    PlaceHolderEmptyWeek(
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            }
+                        }
+                    }
             }
         }
     }
 }
 
 @Composable
+fun PlaceHolderEmptyWeek(
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        FoodAvatar(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally),
+            list = listOf<Int>(R.drawable.pot),
+            id = 0,
+            small = false
+        )
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally),
+            text = "You need to generate a new week!",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleSmall
+        )
+    }
+}
+
+@Composable
 fun HorizontalWeek(
-    state : MainState = MainState()
+    state : MainState = MainState(),
+    navController: NavController = rememberNavController()
 ) {
     val margin = 0
     val customPageSize = object : PageSize {
@@ -157,54 +221,114 @@ fun HorizontalWeek(
 
     val pagerState = rememberPagerState(
         pageCount = { state.recipes.size },
-        initialPage = 0
+        initialPage = 0.coerceAtLeast(state.recipes.indexOfFirst { it.date == state.actualDate })
     )
 
-    HorizontalPager(
-        modifier = Modifier,
-        state = pagerState,
-        pageSpacing = 0.dp,
-        pageSize = customPageSize,
-        flingBehavior = PagerDefaults.flingBehavior(
+    val scope = rememberCoroutineScope()
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        HorizontalPager(
+            modifier = Modifier.weight(1f),
             state = pagerState,
-            pagerSnapDistance = PagerSnapDistance.atMost(0)
-        ),
-        contentPadding = PaddingValues(horizontal = margin.dp),
-    ) { page ->
-        CalendarSingleCoreMinimal (
-            modifier    = Modifier
-                .graphicsLayer {
-                    val pageOffset = (
-                            (pagerState.currentPage - page) + pagerState
-                                .currentPageOffsetFraction
-                            ).absoluteValue
+            pageSpacing = 0.dp,
+            pageSize = customPageSize,
+            flingBehavior = PagerDefaults.flingBehavior(
+                state = pagerState,
+                pagerSnapDistance = PagerSnapDistance.atMost(0)
+            ),
+            contentPadding = PaddingValues(horizontal = margin.dp),
+        ) { page ->
+            CalendarSingleCoreMinimal(
+                modifier = Modifier
+                    .graphicsLayer {
+                        val pageOffset = (
+                                (pagerState.currentPage - page) + pagerState
+                                    .currentPageOffsetFraction
+                                ).absoluteValue
 
-                    alpha = lerp(
-                        start = 0.7f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
+                        alpha = lerp(
+                            start = 0.7f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
 
-                    scaleY = lerp(
-                        start = 0.75f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
+                        scaleY = lerp(
+                            start = 0.75f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
 
-                    scaleX = lerp(
-                        start = 0.75f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
+                        scaleX = lerp(
+                            start = 0.75f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
+                    }
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        getColorFromId(
+                            state.recipes[page].recipeModel.idImage,
+                            isSystemInDarkTheme()
+                        ).copy(alpha = 0.6f)
+                    ),
+                recipe = state.recipes[page].recipeModel,
+                date = state.recipes[page].date,
+                today = state.actualDate
+            ) {
+                navController.navigate(Screen.Calendar.route)
+            }
+        }
+
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)) {
+            repeat(state.recipes.size) { index ->
+                SingleDaySelector(
+                    modifier = Modifier.weight(1f),
+                    text = state.recipes[index].date.substring(0, 2),
+                    selected = index == pagerState.currentPage
+                ) {
+                    scope.launch {
+                        pagerState.animateScrollToPage(index)
+                    }
                 }
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surface)
-            ,
-            recipe      = state.recipes[page].recipeModel,
-            date        = state.recipes[page].date,
-            today       = state.actualDate
-        )
+            }
+        }
     }
+}
+
+@Composable
+fun SingleDaySelector(
+    modifier    : Modifier = Modifier,
+    selected    : Boolean = false,
+    text        : String = "Mo",
+    click       : () -> Unit = {}
+) {
+
+    Box(
+        modifier = modifier
+            .padding(horizontal = 5.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (selected) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+            .border(
+                width = if (selected) 3.dp else 0.dp,
+                color = if (selected) MaterialTheme.colorScheme.outline else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .aspectRatio(1f)
+            .clickable {
+                click()
+            }
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = text,
+            fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal)
+    }
+
 }
 
 @Composable
@@ -216,12 +340,13 @@ fun ButtonDescriptionAndSubDescription(
     click : () -> Unit = {}
 ) {
 
-    Card(
-        modifier    = modifier,
-        elevation   = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp),
-        shape       = RoundedCornerShape(14.dp),
-        colors      = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        onClick     = {click()}
+    Box(
+        modifier    = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable() {
+                click()
+            }
     ) {
 
         Column(modifier = Modifier
@@ -276,6 +401,34 @@ private fun MainDarkPreview() {
         typography = Typography,
         content = {
             MainCore()
+        }
+    )
+}
+
+@Preview
+@Composable
+private fun MainLightPreviewEmpty() {
+    MaterialTheme(
+        colorScheme = LightColorScheme,
+        typography = Typography,
+        content = {
+            MainCore(state = MainState(
+                state = MainStatus.EMPTY
+            ))
+        }
+    )
+}
+
+@Preview
+@Composable
+private fun MainDarkPreviewEmpty() {
+    MaterialTheme(
+        colorScheme = DarkColorScheme,
+        typography = Typography,
+        content = {
+            MainCore(state = MainState(
+                state = MainStatus.EMPTY
+            ))
         }
     )
 }

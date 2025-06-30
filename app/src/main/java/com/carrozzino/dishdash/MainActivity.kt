@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
         var startingRoute : Screen = Screen.Login
         if(!preferences.isLogged()) {
             loginViewModel.value.loginFromActivity = ::login
-        } else startingRoute = Screen.Calendar
+        } else startingRoute = Screen.Home
 
         setContent {
             navController = rememberNavController()

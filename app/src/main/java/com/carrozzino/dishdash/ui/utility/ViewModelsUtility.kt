@@ -17,6 +17,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
+val formatter = DateTimeFormatter.ofPattern("EEEE dd MMMM")
+
 fun getRemainingDaysWithDates(): List<String> {
     var today = LocalDate.now()
 
@@ -24,16 +26,24 @@ fun getRemainingDaysWithDates(): List<String> {
         today = today.plusDays(((DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal) + 1).toLong())
     }
 
-    val formatter = DateTimeFormatter.ofPattern("EEEE dd MMMM")
-
     return (0..DayOfWeek.FRIDAY.ordinal - today.dayOfWeek.ordinal)
+        .map { today.plusDays(it.toLong()) }
+        .map { it.format(formatter) }
+}
+fun getWeek(): List<String> {
+    var today = LocalDate.now()
+
+    if(DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal < 2)
+        today = today.plusDays(((DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal) + 1).toLong())
+    else today.minusDays(today.dayOfWeek.ordinal.toLong())
+
+    return (0..DayOfWeek.FRIDAY.ordinal)
         .map { today.plusDays(it.toLong()) }
         .map { it.format(formatter) }
 }
 
 fun getActualDate(): String {
     val today = LocalDate.now()
-    val formatter = DateTimeFormatter.ofPattern("EEEE dd MMMM")
     return today.format(formatter)
 }
 
@@ -53,6 +63,6 @@ val listImages : List<Int> = listOf(
 )
 
 fun getColorFromId(id : Int, dark : Boolean = false) : Color {
-    var index = abs(id % listColors.size)
+    val index = abs(id % listColors.size)
     return if(dark) listColorsDark[index] else listColors[index]
 }
