@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -56,6 +57,10 @@ import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Typography
+import com.carrozzino.dishdash.ui.theme.settings1
+import com.carrozzino.dishdash.ui.theme.settings2
+import com.carrozzino.dishdash.ui.theme.settings3
+import com.carrozzino.dishdash.ui.theme.settings4
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import com.carrozzino.dishdash.ui.viewModels.MainState
@@ -128,19 +133,10 @@ fun MainCore(
                         )
                     }
 
-                    Icon(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .size(42.dp)
-                            .padding(end = 8.dp)
-                            .clickable {
-                                navController.navigate(Screen.Settings.route)
-                            }
-                        ,
-                        imageVector = Icons.Rounded.Settings,
-                        contentDescription = "settings button",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
+                    LevelButton(modifier = Modifier
+                            .align(Alignment.CenterVertically)) {
+                        navController.navigate(Screen.Settings.route)
+                    }
                 }
 
 
@@ -428,6 +424,47 @@ fun ButtonDescriptionAndSubDescription(
                 text = sub,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
+@Composable
+fun LevelButton(
+    modifier : Modifier = Modifier,
+    click : () -> Unit
+) {
+    Box(modifier = modifier
+        .size(50.dp)
+        .clip(RoundedCornerShape(10.dp))
+        .background(MaterialTheme.colorScheme.surface)
+    ) {
+        Row(modifier = Modifier
+            .padding(2.dp)
+            .clickable{ click() }) {
+            Box(modifier = Modifier
+                .align(Alignment.Bottom)
+                .padding(2.dp)
+                .weight(1f)
+                .height(20.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(settings1)
+            )
+            Box(modifier = Modifier
+                .align(Alignment.Bottom)
+                .padding(2.dp)
+                .weight(1f)
+                .height(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(settings3)
+            )
+            Box(modifier = Modifier
+                .align(Alignment.Bottom)
+                .padding(2.dp)
+                .weight(1f)
+                .height(30.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(settings4)
             )
         }
     }
