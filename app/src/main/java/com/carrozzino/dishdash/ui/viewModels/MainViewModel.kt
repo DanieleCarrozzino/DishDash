@@ -3,16 +3,17 @@ package com.carrozzino.dishdash.ui.viewModels
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
+import com.carrozzino.dishdash.data.repository.database.RecipeModelRepository
 import com.carrozzino.dishdash.data.repository.models.RecipeDayModel
 import com.carrozzino.dishdash.data.repository.models.RecipeModel
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.DocumentSnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -76,6 +77,7 @@ class MainViewModel @Inject constructor (
     val database : FirebaseRealtimeDatabaseInterface,
     val firestore : FirebaseFirestoreDatabaseInterface,
     val storage : FirebaseStorageInterface,
+    val localDatabase : RecipeModelRepository
 ) : ViewModel() {
 
     private val _mainState = MutableStateFlow(MainState())
@@ -89,47 +91,26 @@ class MainViewModel @Inject constructor (
 
     var openLink : (String) -> Unit = {}
 
-    init {
+    fun observeWeek() {
         val days = ViewModelUtility.getWeek()
 
         // Get the recipes from the real time database
         database.getValues("recipes_of_the_week", listOf())
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val values = dataSnapshot
-                        .getValue(object : GenericTypeIndicator<ArrayList<HashMap<String, Any>>>() {})
-                    if(values?.size != 5) return
-
-                    val dates : MutableList<RecipeDayModel> = mutableListOf()
-                    values.forEachIndexed { index, recipe ->
-
-                        var link = if(recipe.contains("link")) recipe["link"].toString() else ""
-                        if(link.isEmpty()) {
-                            link = "https://www.google.com/search?q=" + Uri.encode(recipe["main"].toString())
-                        }
-
-                        dates.add(RecipeDayModel(
-                            date = if(index < days.size) days[index] else "",
-                            recipeModel = RecipeModel(
-                                main = recipe["main"].toString(),
-                                side = if(recipe.contains("side")) recipe["side"].toString() else "",
-                                link = link,
-                                mainIngredients = recipe["mainIngredients"].toString(),
-                                sideIngredients = if(recipe.contains("sideIngredients")) recipe["sideIngredients"].toString() else "",
-                                urlImage = recipe["urlImage"].toString(),
-                                idImage = if(recipe.contains("idImage") &&
-                                    recipe["idImage"].toString().isNotEmpty())
-                                    recipe["idImage"].toString().toInt() else 0
-                            )
-                        ))
+                    if(dataSnapshot.children.count() == 0) {
+                        _mainState.update { it.copy(state = MainStatus.EMPTY) }
+                        return
                     }
 
-                    _mainState.update {
-                        it.copy(
-                            recipes     = dates,
-                            actualDate  = ViewModelUtility.getActualDate(),
-                            state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED
-                        )
+                    var count = 0
+                    for (child in dataSnapshot.children) {
+                        var recipe = child.getValue(RecipeModel::class.java)
+                        if(recipe?.link?.isEmpty() == true) {
+                            recipe = recipe.copy(
+                                link = "https://www.google.com/search?q=" + Uri.encode(recipe.main))}
+                        localDatabase.insert(recipe?.copy(id = count) ?: RecipeModel())
+                        count ++
                     }
                 }
 
@@ -137,6 +118,27 @@ class MainViewModel @Inject constructor (
 
                 }
             })
+
+        viewModelScope.launch(Dispatchers.IO) {
+            localDatabase.all().collect { recipes ->
+                val dates : MutableList<RecipeDayModel> = mutableListOf()
+                recipes.forEach { recipe ->
+                    dates.add(
+                        RecipeDayModel(
+                            date = if(dates.size < days.size) days[dates.size] else "",
+                            recipeModel = recipe
+                        )
+                    )
+                }
+                _mainState.update {
+                    it.copy(
+                        recipes     = dates,
+                        actualDate  = ViewModelUtility.getActualDate(),
+                        state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED
+                    )
+                }
+            }
+        }
     }
 
     fun onReceive(userIntent : UserIntent) = viewModelScope.launch(Dispatchers.IO) {
@@ -271,7 +273,7 @@ class MainViewModel @Inject constructor (
                     "main" to (main["title"]?.toString() ?: ""),
                     "mainIngredients" to (main["ingredients"]?.toString() ?: ""),
                     "urlImage" to (main["urlImage"]?.toString() ?: ""),
-                    "idImage" to (main["idImage"]?.toString() ?: ""),
+                    "idImage" to (main["idImage"] ?: 0),
                     "link" to (main["link"]?.toString() ?: "")
                 )
 

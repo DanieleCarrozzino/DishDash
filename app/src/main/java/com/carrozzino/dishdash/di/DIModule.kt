@@ -2,6 +2,7 @@ package com.carrozzino.dishdash.di
 
 import android.content.Context
 import androidx.credentials.CredentialManager
+import androidx.room.Room
 import com.carrozzino.dishdash.data.internal.Preferences
 import com.carrozzino.dishdash.data.network.authentication.FirebaseAuthenticationImpl
 import com.carrozzino.dishdash.data.network.authentication.FirebaseAuthenticationInterface
@@ -11,6 +12,8 @@ import com.carrozzino.dishdash.data.network.storage.implementations.FirebaseStor
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
+import com.carrozzino.dishdash.data.repository.database.RecipeModelDatabase
+import com.carrozzino.dishdash.data.repository.database.RecipeModelRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -66,6 +69,25 @@ object DIModule {
     @Provides
     fun providesFirebaseStorage(): FirebaseStorageInterface {
         return FirebaseStorageImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRecipeModelDatabase(
+        @ApplicationContext context : Context
+    ) : RecipeModelDatabase {
+        return Room.databaseBuilder(context, RecipeModelDatabase::class.java, "recipes_database")
+            .fallbackToDestructiveMigration(true)
+            .allowMainThreadQueries()
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRecipeModelRepository(
+        recipeModelDatabase: RecipeModelDatabase
+    ) : RecipeModelRepository {
+        return RecipeModelRepository(recipeModelDatabase)
     }
 
 }

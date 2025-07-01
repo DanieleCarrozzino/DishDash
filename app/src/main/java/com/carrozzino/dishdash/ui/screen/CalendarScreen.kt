@@ -69,19 +69,22 @@ import kotlin.math.sin
 fun CalendarScreen(
     modifier : Modifier = Modifier,
     navController : NavController = rememberNavController(),
-    viewModel : MainViewModel = hiltViewModel<MainViewModel>()
+    viewModel : MainViewModel = hiltViewModel<MainViewModel>(),
+    position : Int = 0
 ) {
     CalendarCore(
         modifier = modifier,
         navController = navController,
-        viewModel = viewModel)
+        viewModel = viewModel,
+        position = position)
 }
 
 @Composable
 fun CalendarCore(
     modifier: Modifier = Modifier,
     navController : NavController = rememberNavController(),
-    viewModel : MainViewModel = hiltViewModel<MainViewModel>()
+    viewModel : MainViewModel = hiltViewModel<MainViewModel>(),
+    position : Int = 0
 ) {
 
     val state = viewModel.mainState.collectAsState().value
@@ -89,7 +92,7 @@ fun CalendarCore(
     val pagerState = rememberPagerState(
         pageCount = { state.recipes.size },
         initialPageOffsetFraction = 0f,
-        initialPage = 0)
+        initialPage = if(position < state.recipes.size) position else 0)
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPageOffsetFraction }.collect { page ->

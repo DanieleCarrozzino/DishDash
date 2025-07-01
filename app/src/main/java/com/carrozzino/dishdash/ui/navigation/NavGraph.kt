@@ -4,13 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.carrozzino.dishdash.ui.screen.AddingScreen
 import com.carrozzino.dishdash.ui.screen.CalendarScreen
 import com.carrozzino.dishdash.ui.screen.GenerationScreen
 import com.carrozzino.dishdash.ui.screen.LoginScreen
 import com.carrozzino.dishdash.ui.screen.MainScreen
+import com.carrozzino.dishdash.ui.screen.settings.SettingsScreen
 import com.carrozzino.dishdash.ui.viewModels.LoginViewModel
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 
@@ -20,6 +23,7 @@ sealed class Screen(val route : String) {
     data object Adding : Screen("Adding")
     data object Generate : Screen("Generating")
     data object Calendar : Screen("Calendar")
+    data object Settings : Screen("Settings")
 }
 
 @Composable
@@ -74,12 +78,24 @@ fun SetupNavGraph(
         }
 
         composable(
-            route = Screen.Calendar.route
-        ) {
+            route = "${Screen.Calendar.route}/{position}",
+            arguments = listOf(navArgument("position"){ type = NavType.IntType })
+        ) { backStackEntry ->
             CalendarScreen(
                 modifier = modifier,
                 navController = navController,
-                viewModel = main
+                viewModel = main,
+                position = backStackEntry.arguments?.getInt("position") ?: 0
+            )
+        }
+
+        composable(
+            route = Screen.Settings.route
+        ) {
+            SettingsScreen(
+                modifier = modifier,
+                navController = navController,
+                viewmodel = main
             )
         }
     }

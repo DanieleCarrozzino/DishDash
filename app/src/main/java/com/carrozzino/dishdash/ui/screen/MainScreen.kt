@@ -23,7 +23,10 @@ import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,6 +70,10 @@ fun MainScreen(
     navController : NavController = rememberNavController(),
     viewModel : MainViewModel = hiltViewModel<MainViewModel>()
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.observeWeek()
+    }
+
     val state = viewModel.mainState.collectAsState().value
 
     MainCore(
@@ -93,30 +100,48 @@ fun MainCore(
 
         Box(modifier = modifier.fillMaxSize()) {
             Column(modifier = Modifier.padding(vertical = 25.dp, horizontal = 20.dp)) {
-                Row {
-                    Image(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(end = 5.dp),
-                        painter = painterResource(R.drawable.pizza),
-                        contentDescription = ""
-                    )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row {
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .padding(end = 5.dp),
+                                painter = painterResource(R.drawable.pizza),
+                                contentDescription = ""
+                            )
 
-                    Text(
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        text = "Whatever you need",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onBackground
+                            Text(
+                                modifier = Modifier.align(Alignment.CenterVertically),
+                                text = "Whatever you need",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+
+                        Text(
+                            modifier = Modifier,
+                            text = "Dish Dash Bish",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    Icon(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .size(42.dp)
+                            .padding(end = 8.dp)
+                            .clickable {
+                                navController.navigate(Screen.Settings.route)
+                            }
+                        ,
+                        imageVector = Icons.Rounded.Settings,
+                        contentDescription = "settings button",
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
-
-                Text(
-                    modifier = Modifier,
-                    text = "Dish Dash Bish",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
 
 
                 Row(modifier = Modifier) {
@@ -158,7 +183,6 @@ fun MainCore(
                             when(targetState) {
                                 MainStatus.DEFAULT -> {
                                     CircularProgressIndicator(
-                                        progress = { 100f },
                                         modifier = Modifier
                                             .align(Alignment.Center)
                                             .size(40.dp)
@@ -282,7 +306,7 @@ fun HorizontalWeek(
                 date = state.recipes[page].date,
                 today = state.actualDate
             ) {
-                navController.navigate(Screen.Calendar.route)
+                navController.navigate("${Screen.Calendar.route}/$page")
             }
         }
 
@@ -354,7 +378,8 @@ fun SingleDaySelector(
         Text(
             modifier = Modifier.align(Alignment.Center),
             text = text,
-            fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal)
+            fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal,
+            style = MaterialTheme.typography.titleSmall)
     }
 
 }
