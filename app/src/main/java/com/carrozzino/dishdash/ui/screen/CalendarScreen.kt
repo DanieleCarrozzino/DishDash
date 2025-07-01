@@ -1,5 +1,6 @@
 package com.carrozzino.dishdash.ui.screen
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -148,7 +149,7 @@ fun FoodAvatar(
     val offsetX = cos(rad).toFloat()
     val offsetY = sin(rad).toFloat()
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Image(
             modifier = Modifier
                 .size(screenWidth / deltaSize)
@@ -160,22 +161,25 @@ fun FoodAvatar(
             painter = painterResource(list[id]),
             contentDescription = ""
         )
-        Spacer(modifier = Modifier.height(10.dp))
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .blur(30.dp)
-                .fillMaxWidth()
-                .height(120.dp)
-                .offset(x = (offsetX * (offsetXSize / 2)).dp, y = 0.dp)
-        ) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Spacer(modifier = Modifier.height(10.dp))
             Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .clip(CircleShape)
-                    .size(width = (screenWidth / (deltaSize + 2)), height = 20.dp)
-                    .background(MaterialTheme.colorScheme.onBackground)
-            )
+                    .align(Alignment.CenterHorizontally)
+                    .blur(30.dp)
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .offset(x = (offsetX * (offsetXSize / 2)).dp, y = 0.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .clip(CircleShape)
+                        .size(width = (screenWidth / (deltaSize + 2)), height = 20.dp)
+                        .background(MaterialTheme.colorScheme.onBackground)
+                )
+            }
         }
     }
 }
