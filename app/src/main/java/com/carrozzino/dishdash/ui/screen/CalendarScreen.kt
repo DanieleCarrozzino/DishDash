@@ -24,8 +24,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,10 +58,9 @@ import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.data.repository.models.RecipeModel
 import com.carrozzino.dishdash.ui.navigation.Screen
-import com.carrozzino.dishdash.ui.theme.Red50
 import com.carrozzino.dishdash.ui.theme.White90
-import com.carrozzino.dishdash.ui.utility.getColorFromId
-import com.carrozzino.dishdash.ui.utility.listImages
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility
+import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import kotlin.math.cos
 import kotlin.math.sin
@@ -110,7 +109,8 @@ fun CalendarCore(
                 modifier    = modifier,
                 recipe      = state.recipes[page].recipeModel,
                 date        = state.recipes[page].date,
-                today       = state.actualDate
+                today       = state.actualDate,
+                action      = viewModel::onReceive
             ) {
                 navController.navigate(Screen.Home.route)
             }
@@ -121,7 +121,7 @@ fun CalendarCore(
 @Composable
 fun FoodAvatar(
     modifier    : Modifier = Modifier,
-    list        : List<Int> = listImages,
+    list        : List<Int> = ViewModelUtility.listImages,
     id          : Int = 0,
     small       : Boolean = false,
 ) {
@@ -178,7 +178,11 @@ fun FoodAvatar(
 }
 
 @Composable
-fun BottomButtons(modifier : Modifier = Modifier) {
+fun BottomButtons(
+    modifier    : Modifier = Modifier,
+    recipe      : RecipeModel = RecipeModel(),
+    action      : (UserIntent) -> Unit = {}
+) {
     Row(modifier = modifier) {
         Button(
             modifier = Modifier.padding(
@@ -210,19 +214,20 @@ fun BottomButtons(modifier : Modifier = Modifier) {
             ),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Red50,
+                containerColor = MaterialTheme.colorScheme.secondary,
             ),
             onClick = {
-                // TODO
+                action(UserIntent.OnOpenLinkRecipe(recipe.link))
             }) {
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(text = "open recipe", color = White90)
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Icon(
-                Icons.Filled.Clear,
-                contentDescription = "delete button",
+                Icons.Filled.KeyboardArrowRight,
+                contentDescription = "open recipe button",
                 modifier = Modifier.size(ButtonDefaults.IconSize),
                 tint = White90
             )
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(text = "delete", color = White90)
         }
     }
 }
@@ -233,19 +238,21 @@ fun CalendarSingleCoreFullScreen(
     recipe : RecipeModel = RecipeModel(),
     date : String = "",
     today : String = "",
+    action : (UserIntent) -> Unit = {},
     navigate : () -> Unit = {}
 ) {
     val isToday = date == today
 
     Box(modifier = Modifier.fillMaxSize().background(
-        getColorFromId(recipe.idImage, isSystemInDarkTheme()).copy(
+        ViewModelUtility.getColorFromId(recipe.idImage, isSystemInDarkTheme()).copy(
             alpha = if(isToday) 1f else 0.5f))) {
         CalendarSingleCore(
             modifier    = modifier,
             recipe      = recipe,
             date        = date,
             today       = today,
-            navigate    = navigate
+            navigate    = navigate,
+            action      = action,
         )
     }
 }
@@ -256,7 +263,8 @@ fun CalendarSingleCore(
     recipe : RecipeModel = RecipeModel(),
     date : String = "",
     today : String = "",
-    navigate : () -> Unit = {}
+    action      : (UserIntent) -> Unit = {},
+    navigate    : () -> Unit = {}
 ) {
     val isToday = date == today
 
@@ -323,7 +331,7 @@ fun CalendarSingleCore(
             Text(
                 modifier = Modifier.padding(horizontal = 20.dp),
                 text = recipe.mainIngredients.replace("\n", ", "),
-                maxLines = 2,
+                maxLines = 5,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onBackground
@@ -341,14 +349,18 @@ fun CalendarSingleCore(
                 Text(
                     modifier = Modifier.padding(horizontal = 20.dp),
                     text = "${recipe.side} - ${recipe.sideIngredients}",
-                    maxLines = 2,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
-            BottomButtons(modifier = Modifier)
+            BottomButtons(
+                modifier = Modifier,
+                recipe = recipe,
+                action = action
+            )
         }
     }
 }

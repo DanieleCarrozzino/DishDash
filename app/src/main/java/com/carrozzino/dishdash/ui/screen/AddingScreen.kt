@@ -89,10 +89,10 @@ import com.carrozzino.dishdash.BuildConfig
 import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.ui.theme.Red50
 import com.carrozzino.dishdash.ui.theme.White90
-import com.carrozzino.dishdash.ui.utility.listImages
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.carrozzino.dishdash.ui.viewModels.AddingState
-import com.carrozzino.dishdash.ui.viewModels.Intent
-import com.carrozzino.dishdash.ui.viewModels.Intent.OnImageSelected
+import com.carrozzino.dishdash.ui.viewModels.UserIntent
+import com.carrozzino.dishdash.ui.viewModels.UserIntent.OnImageSelected
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import com.carrozzino.dishdash.ui.viewModels.Recipe
 import kotlinx.coroutines.Dispatchers
@@ -264,28 +264,33 @@ fun AddingScreen(
     AnimatedContent (
         targetState = state
     ) { internal ->
-        if (internal == 0) {
-            AddingCore(
-                modifier = modifier,
-                navController = navController,
-                state = addingState) { intent ->
-                viewModel.onReceive(intent = intent)
+        when (internal) {
+            0 -> {
+                AddingCore(
+                    modifier = modifier,
+                    navController = navController,
+                    state = addingState) { intent ->
+                    viewModel.onReceive(userIntent = intent)
+                }
             }
-        } else if(internal == 1) {
-            // Loading
-            LoadingScreen("Uploading recipe...")
-        } else if(internal == 2) {
-            // Loaded
-            UploadedInfoScreen(
-                text = "Uploaded Successful!",
-                image = R.drawable.salad
-            )
-        } else {
-            // Error
-            UploadedInfoScreen(
-                text = "failed to upload the recipe :(",
-                image = R.drawable.bad_salad
-            )
+            1 -> {
+                // Loading
+                LoadingScreen("Uploading recipe...")
+            }
+            2 -> {
+                // Loaded
+                UploadedInfoScreen(
+                    text = "Uploaded Successful!",
+                    image = R.drawable.salad
+                )
+            }
+            else -> {
+                // Error
+                UploadedInfoScreen(
+                    text = "failed to upload the recipe :(",
+                    image = R.drawable.bad_salad
+                )
+            }
         }
     }
 }
@@ -362,13 +367,14 @@ fun AddingCore(
     modifier : Modifier = Modifier,
     navController : NavController = rememberNavController(),
     state : AddingState = AddingState(),
-    click : (intent : Intent) -> Unit = {}
+    click : (userIntent : UserIntent) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     var titleRecipe by remember { mutableStateOf(state.recipe.title) }
     var ingredients by remember { mutableStateOf(state.recipe.ingredients) }
+    var linkRecipe by remember { mutableStateOf(state.recipe.link) }
     var isSide by remember { mutableStateOf(state.recipe.isSide) }
     var needASide by remember { mutableStateOf(state.recipe.needASide) }
     var idImage by remember { mutableIntStateOf(state.recipe.idImage) }
@@ -519,6 +525,11 @@ fun AddingCore(
                 text = state.recipe.ingredients,
                 error = state.error
             ) { ingredients = it }
+            TitleAndTextField(
+                title = "Link to the recipe",
+                text = state.recipe.link
+            ) { linkRecipe = it }
+            Spacer(modifier = Modifier.height(5.dp))
 
             Spacer(modifier = Modifier.height(5.dp))
 
@@ -576,7 +587,7 @@ fun AddingCore(
             HorizontalImages(
                 modifier = Modifier
                     .padding(start = 18.dp, end = 18.dp),
-                list = listImages,
+                list = ViewModelUtility.listImages,
                 selected = idImage) {
                 idImage = it
             }
@@ -625,10 +636,11 @@ fun AddingCore(
                 enabled = !state.uploading,
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 onClick = {
-                    click(Intent.OnRecipeSaved(
+                    click(UserIntent.OnRecipeSaved(
                         Recipe(
                             title = titleRecipe,
                             ingredients = ingredients,
+                            link = linkRecipe,
                             isSide = isSide,
                             seasons = seasons,
                             url = urlImage,
@@ -661,7 +673,7 @@ fun AddingCore(
                 ),
                 onClick = {
                     navController.popBackStack()
-                    click(Intent.OnClearNewRecipe)
+                    click(UserIntent.OnClearNewRecipe)
                 }) {
                 Icon(
                     Icons.Filled.Clear,
@@ -679,7 +691,7 @@ fun AddingCore(
 @Composable
 fun HorizontalImages(
     modifier : Modifier = Modifier,
-    list : List<Int> = listImages,
+    list : List<Int> = ViewModelUtility.listImages,
     selected : Int = 0,
     select : (Int) -> Unit = {}
 ) {

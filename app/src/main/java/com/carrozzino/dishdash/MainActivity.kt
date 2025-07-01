@@ -1,5 +1,6 @@
 package com.carrozzino.dishdash
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,6 +18,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.data.internal.Preferences
@@ -25,6 +27,7 @@ import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.navigation.SetupNavGraph
 import com.carrozzino.dishdash.ui.theme.DishDashTheme
 import com.carrozzino.dishdash.ui.viewModels.LoginViewModel
+import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -36,7 +39,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private lateinit var navController  : NavHostController
+
     private val loginViewModel : Lazy<LoginViewModel> = viewModels<LoginViewModel>()
+    private val mainViewModel : Lazy<MainViewModel> = viewModels<MainViewModel>()
+
     @Inject lateinit var preferences : Preferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +56,10 @@ class MainActivity : ComponentActivity() {
         var startingRoute : Screen = Screen.Login
         if(!preferences.isLogged()) {
             loginViewModel.value.loginFromActivity = ::login
-        } else startingRoute = Screen.Home
+        } else {
+            mainViewModel.value.openLink = ::openLink
+            startingRoute = Screen.Home
+        }
 
         setContent {
             navController = rememberNavController()
@@ -62,7 +71,8 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding),
                             navController = navController,
                             start = startingRoute,
-                            login = loginViewModel.value
+                            login = loginViewModel.value,
+                            main = mainViewModel.value
                         )
                     }
                 }
@@ -73,6 +83,12 @@ class MainActivity : ComponentActivity() {
     private suspend fun login(firebaseAuth : FirebaseAuthenticationInterface, callback : (Int) -> Unit = {}) {
         println("$TAG::login")
         firebaseAuth.signInWithGoogle(this, callback)
+    }
+
+    private fun openLink(link : String) {
+        val intent = Intent(Intent.ACTION_VIEW, link.toUri())
+        intent.addCategory(Intent.CATEGORY_BROWSABLE)
+        startActivity(intent)
     }
 }
 

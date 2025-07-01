@@ -16,21 +16,21 @@ val DarkColorScheme = darkColorScheme(
     outline = YellowDark,
 
     onPrimary = Blue70,
-    secondary = Red50,
+    secondary = DarkBlue,
     onSecondary = Red20
 )
 
 val LightColorScheme = lightColorScheme(
     background = White90,
-    surface = Blue,
-    surfaceVariant = Blue.copy(alpha = 0.7f),
+    surface = LightBlue,
+    surfaceVariant = LightBlue.copy(alpha = 0.7f),
     onBackground = Black90,
     error = Red90,
     outline = Yellow,
 
 
     primary = Green,
-    secondary = PurpleGrey40,
+    secondary = Blue,
     tertiary = Pink40
 
     /* Other default colors to override

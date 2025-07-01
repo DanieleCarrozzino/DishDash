@@ -9,8 +9,7 @@ import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeD
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
 import com.carrozzino.dishdash.data.repository.models.RecipeDayModel
 import com.carrozzino.dishdash.data.repository.models.RecipeModel
-import com.carrozzino.dishdash.ui.utility.getActualDate
-import com.carrozzino.dishdash.ui.utility.getWeek
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
@@ -41,40 +40,42 @@ data class MainState (
 )
 
 data class AddingState (
-    var uploading : Boolean = false,
-    var error : Boolean = false,
-    var uri : Uri? = null,
-    var recipe : Recipe = Recipe()
+    val uploading : Boolean = false,
+    val error : Boolean = false,
+    val uri : Uri? = null,
+    val recipe : Recipe = Recipe()
 )
 
 data class GeneratingState (
-    var generating : Boolean = false,
-    var error : Boolean = false,
+    val generating : Boolean = false,
+    val error : Boolean = false,
 )
 
 data class Recipe(
-    var url : String = "",
-    var title : String = "",
-    var ingredients : String = "",
-    var image : ImageBitmap? = null,
-    var isSide : Boolean = false,
-    var needASide : Boolean = false,
-    var idImage : Int = 0,
-    var seasons : List<Int> = listOf<Int>()
+    val url             : String = "",
+    val title           : String = "",
+    val ingredients     : String = "",
+    val link            : String = "",
+    val image           : ImageBitmap? = null,
+    val isSide          : Boolean = false,
+    val needASide       : Boolean = false,
+    val idImage         : Int = 0,
+    val seasons         : List<Int> = listOf<Int>()
 )
 
-sealed class Intent {
-    data class OnImageSelected(val uri : Uri, val image : ImageBitmap) : Intent()
-    data class OnRecipeSaved(var recipe : Recipe) : Intent()
-    data object OnClearNewRecipe : Intent()
-    data object OnGenerateNewWeek : Intent()
+sealed class UserIntent {
+    data class OnImageSelected(val uri : Uri, val image : ImageBitmap) : UserIntent()
+    data class OnRecipeSaved(var recipe : Recipe) : UserIntent()
+    data object OnClearNewRecipe : UserIntent()
+    data object OnGenerateNewWeek : UserIntent()
+    data class OnOpenLinkRecipe(val link : String) : UserIntent()
 }
 
 @HiltViewModel
 class MainViewModel @Inject constructor (
     val database : FirebaseRealtimeDatabaseInterface,
     val firestore : FirebaseFirestoreDatabaseInterface,
-    val storage : FirebaseStorageInterface
+    val storage : FirebaseStorageInterface,
 ) : ViewModel() {
 
     private val _mainState = MutableStateFlow(MainState())
@@ -86,8 +87,10 @@ class MainViewModel @Inject constructor (
     private val _generatingState = MutableStateFlow(GeneratingState())
     val generatingState : StateFlow<GeneratingState> = _generatingState.asStateFlow()
 
+    var openLink : (String) -> Unit = {}
+
     init {
-        val days = getWeek()
+        val days = ViewModelUtility.getWeek()
 
         // Get the recipes from the real time database
         database.getValues("recipes_of_the_week", listOf())
@@ -99,11 +102,18 @@ class MainViewModel @Inject constructor (
 
                     val dates : MutableList<RecipeDayModel> = mutableListOf()
                     values.forEachIndexed { index, recipe ->
+
+                        var link = if(recipe.contains("link")) recipe["link"].toString() else ""
+                        if(link.isEmpty()) {
+                            link = "https://www.google.com/search?q=" + Uri.encode(recipe["main"].toString())
+                        }
+
                         dates.add(RecipeDayModel(
                             date = if(index < days.size) days[index] else "",
                             recipeModel = RecipeModel(
                                 main = recipe["main"].toString(),
                                 side = if(recipe.contains("side")) recipe["side"].toString() else "",
+                                link = link,
                                 mainIngredients = recipe["mainIngredients"].toString(),
                                 sideIngredients = if(recipe.contains("sideIngredients")) recipe["sideIngredients"].toString() else "",
                                 urlImage = recipe["urlImage"].toString(),
@@ -117,7 +127,7 @@ class MainViewModel @Inject constructor (
                     _mainState.update {
                         it.copy(
                             recipes     = dates,
-                            actualDate  = getActualDate(),
+                            actualDate  = ViewModelUtility.getActualDate(),
                             state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED
                         )
                     }
@@ -129,24 +139,26 @@ class MainViewModel @Inject constructor (
             })
     }
 
-    fun onReceive(intent : Intent) = viewModelScope.launch(Dispatchers.IO) {
-        when(intent) {
-            is Intent.OnImageSelected -> {
-                uploadImage(intent.uri, intent.image)
+    fun onReceive(userIntent : UserIntent) = viewModelScope.launch(Dispatchers.IO) {
+        when(userIntent) {
+            is UserIntent.OnImageSelected -> {
+                uploadImage(userIntent.uri, userIntent.image)
             }
-            is Intent.OnRecipeSaved -> {
-                add(recipe = intent.recipe)
+            is UserIntent.OnRecipeSaved -> {
+                add(recipe = userIntent.recipe)
             }
-            is Intent.OnClearNewRecipe -> {
+            is UserIntent.OnClearNewRecipe -> {
                 clearAddingRecipe()
             }
-            is Intent.OnGenerateNewWeek -> {
+            is UserIntent.OnGenerateNewWeek -> {
                 generate()
+            }
+            is UserIntent.OnOpenLinkRecipe -> {
+                openLink(userIntent.link)
             }
             else -> {}
         }
     }
-
 
     private fun uploadImage(uri : Uri, image : ImageBitmap) {
         _addingState.update { it.copy(
@@ -190,6 +202,7 @@ class MainViewModel @Inject constructor (
                 it.toString(), hashMapOf<String, Any>(
                 "title" to recipe.title,
                 "ingredients" to recipe.ingredients,
+                "link" to recipe.link,
                 "seasons" to recipe.seasons,
                 "urlImage" to recipe.url,
                 "needASide" to recipe.needASide,
@@ -198,7 +211,7 @@ class MainViewModel @Inject constructor (
                 if(response.isSuccessful) {
                     clearAddingRecipe()
                 } else {
-                    _addingState.update { it.copy(
+                    _addingState.update { state -> state.copy(
                         uploading = false,
                         error = true )}
                 }
@@ -258,7 +271,8 @@ class MainViewModel @Inject constructor (
                     "main" to (main["title"]?.toString() ?: ""),
                     "mainIngredients" to (main["ingredients"]?.toString() ?: ""),
                     "urlImage" to (main["urlImage"]?.toString() ?: ""),
-                    "idImage" to (main["idImage"]?.toString() ?: "")
+                    "idImage" to (main["idImage"]?.toString() ?: ""),
+                    "link" to (main["link"]?.toString() ?: "")
                 )
 
                 side?.let {
@@ -266,7 +280,7 @@ class MainViewModel @Inject constructor (
                     hash.put("sideIngredients", (it["ingredients"]?.toString() ?: ""))
                 }
 
-                database.putValues("recipes_of_the_week", listOf(), index.toInt(), hash)
+                database.putValues("recipes_of_the_week", listOf(), index, hash)
                     .addOnCompleteListener { result ->
                         _generatingState.update {
                             it.copy(

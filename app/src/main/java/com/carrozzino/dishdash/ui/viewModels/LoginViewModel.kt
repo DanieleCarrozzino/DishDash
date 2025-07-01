@@ -1,6 +1,5 @@
 package com.carrozzino.dishdash.ui.viewModels
 
-import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.carrozzino.dishdash.data.internal.Preferences
@@ -15,10 +14,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class LoginState (
-    var username : String = "",
-    var password : String = "",
-    var isLogged : Boolean = false,
-    var error : Boolean = false
+    val username : String = "",
+    val password : String = "",
+    val isLogged : Boolean = false,
+    val error : Boolean = false
 )
 
 @HiltViewModel

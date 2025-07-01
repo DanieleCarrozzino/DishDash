@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.carrozzino.dishdash.ui.utility.listImages
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.carrozzino.dishdash.R
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 
 @Composable
 fun GenerationScreen(
@@ -80,12 +80,12 @@ fun GeneratingImageAnimation(
     error : Boolean = false
 ) {
 
-    var id by remember { mutableIntStateOf((0..<listImages.size).random()) }
+    var id by remember { mutableIntStateOf((0..<ViewModelUtility.listImages.size).random()) }
     LaunchedEffect(key1 = Unit) {
         coroutine.launch {
             while(true) {
                 delay(2000)
-                id = (0..<listImages.size).random()
+                id = (0..<ViewModelUtility.listImages.size).random()
             }
         }
     }
@@ -98,7 +98,7 @@ fun GeneratingImageAnimation(
     ) { internal ->
         FoodAvatar(
             modifier = modifier,
-            list = listImages,
+            list = ViewModelUtility.listImages,
             id = internal
         )
     }

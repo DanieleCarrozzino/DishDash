@@ -1,6 +1,8 @@
 package com.carrozzino.dishdash.ui.screen
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,8 +27,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,8 +53,8 @@ import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Typography
-import com.carrozzino.dishdash.ui.utility.getColorFromId
-import com.carrozzino.dishdash.ui.viewModels.Intent
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility
+import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import com.carrozzino.dishdash.ui.viewModels.MainState
 import com.carrozzino.dishdash.ui.viewModels.MainStatus
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
@@ -75,7 +82,7 @@ fun MainCore(
     modifier: Modifier = Modifier,
     navController : NavController = rememberNavController(),
     state : MainState = MainState(),
-    click : (intent : Intent) -> Unit = {}
+    click : (userIntent : UserIntent) -> Unit = {}
     ) {
 
     Box(modifier = Modifier
@@ -133,7 +140,7 @@ fun MainCore(
                         image       = R.drawable.calendar,
                     ) {
                         navController.navigate(Screen.Generate.route)
-                        click(Intent.OnGenerateNewWeek)
+                        click(UserIntent.OnGenerateNewWeek)
                     }
                 }
 
@@ -266,7 +273,7 @@ fun HorizontalWeek(
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(
-                        getColorFromId(
+                        ViewModelUtility.getColorFromId(
                             state.recipes[page].recipeModel.idImage,
                             isSystemInDarkTheme()
                         ).copy(alpha = 0.6f)
@@ -286,7 +293,8 @@ fun HorizontalWeek(
                 SingleDaySelector(
                     modifier = Modifier.weight(1f),
                     text = state.recipes[index].date.substring(0, 2),
-                    selected = index == pagerState.currentPage
+                    selected = index == pagerState.currentPage,
+                    actualDate = state.recipes[index].date == state.actualDate
                 ) {
                     scope.launch {
                         pagerState.animateScrollToPage(index)
@@ -301,21 +309,41 @@ fun HorizontalWeek(
 fun SingleDaySelector(
     modifier    : Modifier = Modifier,
     selected    : Boolean = false,
+    actualDate  : Boolean = false,
     text        : String = "Mo",
     click       : () -> Unit = {}
 ) {
+
+    var select by remember {
+        mutableStateOf(selected)
+    }
+
+    val color by animateColorAsState(
+        targetValue =   if (select) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        else if(actualDate) MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(durationMillis = 300),
+        label = "Color button week"
+    )
+
+    val borderColor by animateColorAsState(
+        targetValue =   if (select) MaterialTheme.colorScheme.outline else Color.Transparent,
+        animationSpec = tween(durationMillis = 300),
+        label = "Color button week"
+    )
+
+    LaunchedEffect(selected) {
+        select = selected
+    }
 
     Box(
         modifier = modifier
             .padding(horizontal = 5.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (selected) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                else MaterialTheme.colorScheme.surfaceVariant
-            )
+            .background(color)
             .border(
                 width = if (selected) 3.dp else 0.dp,
-                color = if (selected) MaterialTheme.colorScheme.outline else Color.Transparent,
+                color = borderColor,
                 shape = RoundedCornerShape(12.dp)
             )
             .aspectRatio(1f)
