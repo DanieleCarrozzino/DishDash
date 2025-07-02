@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.carrozzino.dishdash.data.internal.Preferences
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
@@ -12,8 +13,10 @@ import com.carrozzino.dishdash.data.repository.database.RecipeModelRepository
 import com.carrozzino.dishdash.data.repository.models.RecipeDayModel
 import com.carrozzino.dishdash.data.repository.models.RecipeModel
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility.Companion.RECIPE_MODULE
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.DocumentSnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,9 +38,10 @@ enum class MainStatus {
 }
 
 data class MainState (
-    val recipes : List<RecipeDayModel>  = listOf<RecipeDayModel>(),
-    val actualDate : String             = "",
-    val state : MainStatus              = MainStatus.DEFAULT
+    val recipes     : List<RecipeDayModel>  = listOf<RecipeDayModel>(),
+    val actualDate  : String                = "",
+    val state       : MainStatus            = MainStatus.DEFAULT,
+    val code        : String                = ""
 )
 
 data class AddingState (
@@ -70,14 +74,16 @@ sealed class UserIntent {
     data object OnClearNewRecipe : UserIntent()
     data object OnGenerateNewWeek : UserIntent()
     data class OnOpenLinkRecipe(val link : String) : UserIntent()
+    data object OnSendingCode : UserIntent()
 }
 
 @HiltViewModel
 class MainViewModel @Inject constructor (
-    val database : FirebaseRealtimeDatabaseInterface,
-    val firestore : FirebaseFirestoreDatabaseInterface,
-    val storage : FirebaseStorageInterface,
-    val localDatabase : RecipeModelRepository
+    val database        : FirebaseRealtimeDatabaseInterface,
+    val firestore       : FirebaseFirestoreDatabaseInterface,
+    val storage         : FirebaseStorageInterface,
+    val localDatabase   : RecipeModelRepository,
+    val preferences     : Preferences
 ) : ViewModel() {
 
     private val _mainState = MutableStateFlow(MainState())
@@ -89,56 +95,78 @@ class MainViewModel @Inject constructor (
     private val _generatingState = MutableStateFlow(GeneratingState())
     val generatingState : StateFlow<GeneratingState> = _generatingState.asStateFlow()
 
+    /**
+     * Call this method to open
+     * an external link from the
+     * activity
+     * */
     var openLink : (String) -> Unit = {}
 
-    fun observeWeek() {
-        val days = ViewModelUtility.getWeek()
+    /**
+     * internal reference to this username,
+     * could be different if connected form an
+     * external user
+     * */
+    private val username = ViewModelUtility.encodeToBase64(preferences.getString("username"))
 
-        // Get the recipes from the real time database
-        database.getValues("recipes_of_the_week", listOf())
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if(dataSnapshot.children.count() == 0) {
-                        _mainState.update { it.copy(state = MainStatus.EMPTY) }
-                        return
-                    }
+    /**
+     * Database reference to the real time database of firebase
+     * */
+    private var databaseReference : DatabaseReference? = null
 
-                    var count = 0
-                    for (child in dataSnapshot.children) {
-                        var recipe = child.getValue(RecipeModel::class.java)
-                        if(recipe?.link?.isEmpty() == true) {
-                            recipe = recipe.copy(
-                                link = "https://www.google.com/search?q=" + Uri.encode(recipe.main))}
-                        localDatabase.insert(recipe?.copy(id = count) ?: RecipeModel())
-                        count ++
-                    }
-                }
+    /**
+     * days in a week
+     * */
+    private val days : List<String> = ViewModelUtility.getWeek()
 
-                override fun onCancelled(error: DatabaseError) {
-
-                }
-            })
-
+    init {
         viewModelScope.launch(Dispatchers.IO) {
             localDatabase.all().collect { recipes ->
                 val dates : MutableList<RecipeDayModel> = mutableListOf()
                 recipes.forEach { recipe ->
-                    dates.add(
-                        RecipeDayModel(
-                            date = if(dates.size < days.size) days[dates.size] else "",
-                            recipeModel = recipe
-                        )
-                    )
+                    dates.add( RecipeDayModel(
+                        date = if(dates.size < days.size) days[dates.size] else "",
+                        recipeModel = recipe ))
                 }
                 _mainState.update {
                     it.copy(
                         recipes     = dates,
                         actualDate  = ViewModelUtility.getActualDate(),
-                        state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED
+                        state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED,
                     )
                 }
             }
         }
+    }
+
+    fun observeWeek() {
+        // update internal references
+        _mainState.update { it.copy( code = username) }
+
+        // Get the recipes from the real time database
+        databaseReference = database.getValues(RECIPE_MODULE, listOf(username))
+        databaseReference?.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if(dataSnapshot.children.count() == 0) {
+                    _mainState.update { it.copy(state = MainStatus.EMPTY) }
+                    return
+                }
+
+                var count = 0
+                for (child in dataSnapshot.children) {
+                    var recipe = child.getValue(RecipeModel::class.java)
+                    if(recipe?.link?.isEmpty() == true) {
+                        recipe = recipe.copy(
+                            link = "https://www.google.com/search?q=" + Uri.encode(recipe.main))}
+                    localDatabase.insert(recipe?.copy(id = count) ?: RecipeModel())
+                    count ++
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
     }
 
     fun onReceive(userIntent : UserIntent) = viewModelScope.launch(Dispatchers.IO) {
@@ -282,7 +310,7 @@ class MainViewModel @Inject constructor (
                     hash.put("sideIngredients", (it["ingredients"]?.toString() ?: ""))
                 }
 
-                database.putValues("recipes_of_the_week", listOf(), index, hash)
+                database.putValues(RECIPE_MODULE, listOf(username), index, hash)
                     .addOnCompleteListener { result ->
                         _generatingState.update {
                             it.copy(

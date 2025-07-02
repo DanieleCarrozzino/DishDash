@@ -24,10 +24,7 @@ import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,15 +54,11 @@ import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Typography
-import com.carrozzino.dishdash.ui.theme.settings1
-import com.carrozzino.dishdash.ui.theme.settings2
-import com.carrozzino.dishdash.ui.theme.settings3
-import com.carrozzino.dishdash.ui.theme.settings4
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
-import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import com.carrozzino.dishdash.ui.viewModels.MainState
 import com.carrozzino.dishdash.ui.viewModels.MainStatus
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
+import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -448,7 +441,7 @@ fun LevelButton(
                 .weight(1f)
                 .height(20.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(settings1)
+                .background(MaterialTheme.colorScheme.primary)
             )
             Box(modifier = Modifier
                 .align(Alignment.Bottom)
@@ -456,7 +449,7 @@ fun LevelButton(
                 .weight(1f)
                 .height(40.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(settings3)
+                .background(MaterialTheme.colorScheme.primary)
             )
             Box(modifier = Modifier
                 .align(Alignment.Bottom)
@@ -464,7 +457,7 @@ fun LevelButton(
                 .weight(1f)
                 .height(30.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(settings4)
+                .background(MaterialTheme.colorScheme.primary)
             )
         }
     }

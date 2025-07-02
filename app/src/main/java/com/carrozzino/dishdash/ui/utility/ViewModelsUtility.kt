@@ -1,5 +1,6 @@
 package com.carrozzino.dishdash.ui.utility
 
+import android.util.Base64
 import androidx.compose.ui.graphics.Color
 import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.ui.theme.Back1
@@ -19,7 +20,10 @@ import kotlin.math.abs
 
 class ViewModelUtility() {
     companion object {
-        val formatter = DateTimeFormatter.ofPattern("EEEE dd MMMM")
+
+        const val RECIPE_MODULE = "recipe_of_the_week"
+
+        private val formatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("EEEE dd MMMM")
 
         fun getRemainingDaysWithDates(): List<String> {
             var today = LocalDate.now()
@@ -67,6 +71,11 @@ class ViewModelUtility() {
         fun getColorFromId(id : Int, dark : Boolean = false) : Color {
             val index = abs(id % listColors.size)
             return if(dark) listColorsDark[index] else listColors[index]
+        }
+
+        fun encodeToBase64(input: String): String {
+            val bytes = input.toByteArray(Charsets.UTF_8)
+            return Base64.encodeToString(bytes, Base64.NO_WRAP)
         }
     }
 }

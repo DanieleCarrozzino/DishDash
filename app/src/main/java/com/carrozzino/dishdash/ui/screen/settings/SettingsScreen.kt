@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
@@ -92,7 +91,7 @@ fun SettingsCore (
                 .verticalScroll(rememberScrollState())) {
 
                 // title and subtitle
-                TitleAndSubtitle(title = "Settings") {
+                TitleAndBackButton(title = "Settings") {
                     navController.navigateUp()
                 }
 
@@ -298,7 +297,7 @@ fun ListScreenPreviewDark() {
 }
 
 @Composable
-fun TitleAndSubtitle(
+fun TitleAndBackButton(
     modifier    : Modifier = Modifier,
     title       : String,
     close       : () -> Unit = {}
