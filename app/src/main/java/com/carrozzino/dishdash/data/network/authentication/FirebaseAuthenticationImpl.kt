@@ -69,7 +69,6 @@ class FirebaseAuthenticationImpl @Inject constructor(
                     callback(-1)
                 }
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -89,6 +88,6 @@ class FirebaseAuthenticationImpl @Inject constructor(
     }
 
     override fun getUser(): String {
-        return firebaseAuthentication.currentUser.toString()
+        return firebaseAuthentication.currentUser?.email.toString()
     }
 }

@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.CopyAll
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +38,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -98,7 +96,8 @@ fun ChangeHomeCore (
             Box(modifier = Modifier.weight(1f).fillMaxSize()) {
                 // Insert a new code
                 InsertNewCode(modifier = Modifier.align(Alignment.Center)) {
-                    event(UserIntent.OnSendingCode(it))
+                    if(it.length > 4)
+                        event(UserIntent.OnUpdatingNewCode(it))
                 }
             }
 

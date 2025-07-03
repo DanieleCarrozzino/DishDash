@@ -3,7 +3,6 @@ package com.carrozzino.dishdash.ui.viewModels
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.carrozzino.dishdash.data.internal.Preferences
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
@@ -74,7 +73,7 @@ sealed class UserIntent {
     data object OnClearNewRecipe : UserIntent()
     data object OnGenerateNewWeek : UserIntent()
     data class OnOpenLinkRecipe(val link : String) : UserIntent()
-    data class OnSendingCode(val code : String) : UserIntent()
+    data class OnUpdatingNewCode(val code : String) : UserIntent()
 }
 
 @HiltViewModel
@@ -148,7 +147,7 @@ class MainViewModel @Inject constructor (
         databaseReference = database.getValues(RECIPE_MODULE, listOf(code))
         databaseReference?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if(dataSnapshot.children.count() == 0) {
+                if(dataSnapshot.children.count() < 5) {
                     _mainState.update { it.copy(state = MainStatus.EMPTY) }
                     return
                 }
@@ -187,7 +186,7 @@ class MainViewModel @Inject constructor (
             is UserIntent.OnOpenLinkRecipe -> {
                 openLink(userIntent.link)
             }
-            is UserIntent.OnSendingCode -> {
+            is UserIntent.OnUpdatingNewCode -> {
                 updatingWithANewCode(userIntent.code)
             }
             else -> {}
@@ -195,7 +194,13 @@ class MainViewModel @Inject constructor (
     }
 
     private fun updatingWithANewCode(code : String) {
+        // Update new internal code
         preferences.putString(code, "code")
+
+        // Delete all old references
+        localDatabase.deleteAll()
+
+        // Starting to observe the new home!
         observeWeek()
     }
 
