@@ -8,4 +8,6 @@ interface FirebaseAuthenticationInterface {
 
     suspend fun signInWithGoogle(activity : Activity, callback: (Int) -> Unit)
 
+    fun getUser() : String = ""
+
 }

@@ -15,8 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.ExitToApp
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,6 +32,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
+import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Red
@@ -99,21 +104,21 @@ fun SettingsCore (
                 BoxInList {
                     Column {
                         SingleListItem(
-                            title       = "Personal account",
+                            title       = "Change home",
                             color       = MaterialTheme.colorScheme.onBackground,
                             iconColor   = settings1,
-                            resource    = R.drawable.baseline_visibility_24
+                            icon        = Icons.Rounded.Home
                         ) {
-//                            navController.navigate(Screen.Account.route){
-//                                launchSingleTop = true
-//                            }
+                            navController.navigate(Screen.ChangeHome.route) {
+                                launchSingleTop = true
+                            }
                         }
 
                         SingleListItem(
                             title       = "Groups",
                             color       = MaterialTheme.colorScheme.onBackground,
                             iconColor   = settings5,
-                            resource    = R.drawable.baseline_visibility_24
+                            icon        = Icons.Rounded.Home
                         ) {
 //                            navController.navigate(Screen.Groups.route) {
 //                                launchSingleTop = true
@@ -124,7 +129,7 @@ fun SettingsCore (
                             title       = "Notifications and Sound",
                             color       = MaterialTheme.colorScheme.onBackground,
                             iconColor   = settings2,
-                            resource    = R.drawable.baseline_visibility_24
+                            icon        = Icons.Rounded.Home
                         ) {
 //                            navController.navigate(Screen.Notification.route) {
 //                                launchSingleTop = true
@@ -135,7 +140,7 @@ fun SettingsCore (
                             title       = "Microphone",
                             color       = MaterialTheme.colorScheme.onBackground,
                             iconColor   = settings3,
-                            resource    = R.drawable.baseline_visibility_24
+                            icon        = Icons.Rounded.Home
                         ) {
 //                            navController.navigate(Screen.Microphone.route) {
 //                                launchSingleTop = true
@@ -147,7 +152,7 @@ fun SettingsCore (
                             color           = MaterialTheme.colorScheme.onBackground,
                             arrowVisible    = true,
                             iconColor       = settings4,
-                            resource        = R.drawable.baseline_visibility_24
+                            icon            = Icons.Rounded.Home
                         ) {
 //                            navController.navigate(Screen.About.route){
 //                                launchSingleTop = true
@@ -158,7 +163,7 @@ fun SettingsCore (
                             title           = "Advanced Settings",
                             color           = MaterialTheme.colorScheme.onBackground,
                             iconColor       = settings6,
-                            resource        = R.drawable.baseline_visibility_24
+                            icon            = Icons.Rounded.Home
                         ) {
 //                            navController.navigate(Screen.Settings.route){
 //                                launchSingleTop = true
@@ -175,7 +180,7 @@ fun SettingsCore (
                         badgeNumber = 0,
                         arrowVisible = false,
                         iconColor = Red,
-                        resource = R.drawable.baseline_visibility_24
+                        icon = Icons.AutoMirrored.Rounded.ExitToApp
                     ) {
 //                        logout()
 //                        navController.navigate(Screen.Login.route) {
@@ -209,7 +214,7 @@ fun SingleListItem(
     badgeNumber : Int           = 0,
     arrowVisible: Boolean       = true,
     iconColor   : Color         = Color.Red,
-    resource    : Int           = R.drawable.baseline_visibility_24,
+    icon        : ImageVector   = Icons.Rounded.Home,
     click       : () -> Unit    = {}
 ){
     Row(modifier = Modifier
@@ -226,13 +231,13 @@ fun SingleListItem(
                 .background(iconColor)
                 .align(Alignment.CenterVertically)
         ) {
-            Image(
+            Icon(
                 modifier = Modifier
                     .padding(9.dp)
                     .size(25.dp),
-                painter = painterResource(id = resource),
+                imageVector = icon,
                 contentDescription = "",
-                colorFilter = ColorFilter.tint(Color.White)
+                tint = Color.White
             )
         }
 

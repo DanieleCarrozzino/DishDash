@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,13 +92,13 @@ fun ChangeHomeCore (
         Column(modifier = modifier.fillMaxSize()) {
 
             TitleAndBackButton(
-                title = "Manage your space!"
+                title = "Handle\nyour space!"
             ) { navController.navigateUp() }
 
             Box(modifier = Modifier.weight(1f).fillMaxSize()) {
                 // Insert a new code
                 InsertNewCode(modifier = Modifier.align(Alignment.Center)) {
-                    event(UserIntent.OnSendingCode)
+                    event(UserIntent.OnSendingCode(it))
                 }
             }
 
@@ -135,19 +136,34 @@ fun ShareYourCode(
             .padding(bottom = 20.dp)
             .align(Alignment.CenterHorizontally)) {
 
-            Text(
-                modifier = Modifier
-                    .weight(2f)
-                    .align(Alignment.Bottom)
-                    .padding(start = 10.dp, end = 10.dp),
-                text = "Share this code to welcome a new member into your house!",
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.End,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Column(modifier = Modifier
+                .weight(2f)
+                .align(Alignment.Bottom)
+                .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)) {
+
+                Text(
+                    modifier = Modifier.align(Alignment.End),
+                    text = "Invite a new Guest!",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.End,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+                    modifier = Modifier.align(Alignment.End),
+                    text = "Share this code to welcome a new member into your house!",
+                    style = MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.End,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+            }
+
+
 
             Image(
                 modifier = Modifier
+                    .padding(10.dp)
                     .weight(1f)
                     .align(Alignment.CenterVertically),
                 painter = painterResource(R.drawable.sending_code),
@@ -171,10 +187,13 @@ fun ShareYourCode(
             ) {
                 Text(
                     modifier = Modifier
-                        .align(Alignment.Center),
+                        .align(Alignment.Center)
+                        .padding(horizontal = 14.dp),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     text = code)
             }
 
@@ -206,7 +225,7 @@ fun ShareYourCode(
 @Composable
 fun InsertNewCode(
     modifier : Modifier = Modifier,
-    send : () -> Unit = {}
+    send : (String) -> Unit = {}
 ) {
     var code by remember { mutableStateOf("") }
 
@@ -219,22 +238,35 @@ fun InsertNewCode(
 
             Image(
                 modifier = Modifier
+                    .padding(10.dp)
                     .weight(1f)
                     .align(Alignment.CenterVertically),
                 painter = painterResource(R.drawable.welcome_home),
                 contentDescription = "Welcome home"
             )
 
-            Text(
-                modifier = Modifier
-                    .weight(2f)
-                    .align(Alignment.Bottom)
-                    .padding(start = 10.dp, end = 10.dp),
-                text = "Got a friend's code?\nEnter it here to join their world!",
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Start,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Column(modifier = Modifier
+                .padding(bottom = 10.dp)
+                .weight(2f)
+                .align(Alignment.Bottom)
+                .padding(start = 10.dp, end = 10.dp)) {
+
+                Text(
+                    modifier = Modifier,
+                    text = "Be a new Guest!",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.End,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+                    modifier = Modifier,
+                    text = "Got a friend's code?\nEnter it here to join their world!",
+                    style = MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.Start,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
 
         
@@ -284,12 +316,13 @@ fun InsertNewCode(
 
             Box(
                 modifier = Modifier
+                    .align(Alignment.CenterVertically)
                     .padding(start = 10.dp)
                     .size(62.dp)
                     .shadow(elevation = 5.dp, shape = RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
                     .background(MaterialTheme.colorScheme.surface)
-                    .clickable {send()}
+                    .clickable {send(code)}
             ) {
                 Icon(
                     modifier = Modifier.size(22.dp).align(Alignment.Center),

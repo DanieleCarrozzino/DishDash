@@ -488,7 +488,7 @@ fun NewActionButton(
                     .align(Alignment.Center),
                 imageVector = imageVector,
                 contentDescription = "",
-                tint = MaterialTheme.colorScheme.background
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
         else if(painter != null) {
@@ -499,7 +499,7 @@ fun NewActionButton(
                     .align(Alignment.Center),
                 painter = painter,
                 contentDescription = "",
-                tint = MaterialTheme.colorScheme.background)
+                tint = MaterialTheme.colorScheme.onBackground)
         }
     }
 }

@@ -87,4 +87,8 @@ class FirebaseAuthenticationImpl @Inject constructor(
                 }
             }
     }
+
+    override fun getUser(): String {
+        return firebaseAuthentication.currentUser.toString()
+    }
 }

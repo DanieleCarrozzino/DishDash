@@ -74,7 +74,7 @@ sealed class UserIntent {
     data object OnClearNewRecipe : UserIntent()
     data object OnGenerateNewWeek : UserIntent()
     data class OnOpenLinkRecipe(val link : String) : UserIntent()
-    data object OnSendingCode : UserIntent()
+    data class OnSendingCode(val code : String) : UserIntent()
 }
 
 @HiltViewModel
@@ -103,11 +103,11 @@ class MainViewModel @Inject constructor (
     var openLink : (String) -> Unit = {}
 
     /**
-     * internal reference to this username,
+     * internal reference to this code,
      * could be different if connected form an
      * external user
      * */
-    private val username = ViewModelUtility.encodeToBase64(preferences.getString("username"))
+    private var code = preferences.getString("code")
 
     /**
      * Database reference to the real time database of firebase
@@ -141,10 +141,11 @@ class MainViewModel @Inject constructor (
 
     fun observeWeek() {
         // update internal references
-        _mainState.update { it.copy( code = username) }
+        code = preferences.getString("code")
+        _mainState.update { it.copy( code = code) }
 
         // Get the recipes from the real time database
-        databaseReference = database.getValues(RECIPE_MODULE, listOf(username))
+        databaseReference = database.getValues(RECIPE_MODULE, listOf(code))
         databaseReference?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.children.count() == 0) {
@@ -186,8 +187,16 @@ class MainViewModel @Inject constructor (
             is UserIntent.OnOpenLinkRecipe -> {
                 openLink(userIntent.link)
             }
+            is UserIntent.OnSendingCode -> {
+                updatingWithANewCode(userIntent.code)
+            }
             else -> {}
         }
+    }
+
+    private fun updatingWithANewCode(code : String) {
+        preferences.putString(code, "code")
+        observeWeek()
     }
 
     private fun uploadImage(uri : Uri, image : ImageBitmap) {
@@ -198,14 +207,6 @@ class MainViewModel @Inject constructor (
                 image = image
             )
         )}
-//        storage.upload(uri).addOnCompleteListener {
-//            val url = it.toString()
-//
-//            _addingState.update { it.copy(
-//                uploading = false,
-//                url = url
-//            )}
-//        }
     }
 
     private fun clearAddingRecipe() {
@@ -310,7 +311,7 @@ class MainViewModel @Inject constructor (
                     hash.put("sideIngredients", (it["ingredients"]?.toString() ?: ""))
                 }
 
-                database.putValues(RECIPE_MODULE, listOf(username), index, hash)
+                database.putValues(RECIPE_MODULE, listOf(code), index, hash)
                     .addOnCompleteListener { result ->
                         _generatingState.update {
                             it.copy(

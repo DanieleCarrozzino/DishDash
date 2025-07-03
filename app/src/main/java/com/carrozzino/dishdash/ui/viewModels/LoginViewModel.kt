@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.carrozzino.dishdash.data.internal.Preferences
 import com.carrozzino.dishdash.data.network.authentication.FirebaseAuthenticationInterface
+import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,6 +72,7 @@ class LoginViewModel @Inject constructor (
     private fun loginResponse(result : Int) {
         if(result == 0) {
             preferences.putBoolean(true, "is_logged")
+            preferences.putString(ViewModelUtility.encodeToBase64(firebaseAuth.getUser()), "code")
             _loginState.update {
                 it.copy(
                     isLogged = true,
