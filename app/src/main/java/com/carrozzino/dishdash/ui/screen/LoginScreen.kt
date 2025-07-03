@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -96,35 +99,29 @@ private fun LoginCore(
 
         LoadingVegetables(modifier = Modifier.blur(20.dp))
         
-        Column(modifier = modifier.align(Alignment.Center)) {
+        Column(modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .align(Alignment.Center)
+            .fillMaxWidth()) {
 
-            Box(modifier = Modifier.weight(1f).fillMaxSize()) {
-
-                Column(modifier = Modifier.align(Alignment.Center)) {
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally),
-                        text = "Dish Dash",
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 48.sp,
-                        lineHeight = 20.sp
-                    )
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally),
-                        text = "Needs ideas? why not",
-                        fontSize = 26.sp,
-                        lineHeight = 16.sp
-                    )
-                }
-            }
-
-
+            Text(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally),
+                text = "Dish Dash",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 48.sp,
+                lineHeight = 20.sp
+            )
+            Text(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally),
+                text = "Needs ideas? why not",
+                fontSize = 26.sp,
+                lineHeight = 16.sp
+            )
 
             Credentials(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .weight(2f),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
                 username = loginState.username,
                 password = loginState.password,
                 error = loginState.error
@@ -288,8 +285,9 @@ fun Credentials(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .size(40.dp, 20.dp)
-                    .background(MaterialTheme.colorScheme.background))
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 12.dp))
         }
 
 

@@ -81,7 +81,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun login(firebaseAuth : FirebaseAuthenticationInterface, callback : (Int) -> Unit = {}) {
-        println("$TAG::login")
         firebaseAuth.signInWithGoogle(this, callback)
     }
 
