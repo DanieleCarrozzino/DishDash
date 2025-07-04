@@ -52,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
+import com.carrozzino.dishdash.ui.theme.Green
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Typography
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
@@ -307,7 +308,8 @@ fun HorizontalWeek(
                     modifier = Modifier.weight(1f),
                     text = state.recipes[index].date.substring(0, 2),
                     selected = index == pagerState.currentPage,
-                    actualDate = state.recipes[index].date == state.actualDate
+                    actualDate = state.recipes[index].date == state.actualDate,
+                    holiday = state.recipes.size == 7 && index >= state.recipes.size - 2
                 ) {
                     scope.launch {
                         pagerState.animateScrollToPage(index)
@@ -324,6 +326,7 @@ fun SingleDaySelector(
     selected    : Boolean = false,
     actualDate  : Boolean = false,
     text        : String = "Mo",
+    holiday     : Boolean = false,
     click       : () -> Unit = {}
 ) {
 
@@ -332,8 +335,9 @@ fun SingleDaySelector(
     }
 
     val color by animateColorAsState(
-        targetValue =   if (select) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                        else if(actualDate) MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        targetValue =   if (select)         MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        else if(actualDate) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        else if(holiday)    MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
                         else MaterialTheme.colorScheme.surfaceVariant,
         animationSpec = tween(durationMillis = 300),
         label = "Color button week"
@@ -441,7 +445,7 @@ fun LevelButton(
                 .weight(1f)
                 .height(20.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary)
+                .background(Green)
             )
             Box(modifier = Modifier
                 .align(Alignment.Bottom)
@@ -449,7 +453,7 @@ fun LevelButton(
                 .weight(1f)
                 .height(40.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary)
+                .background(Green)
             )
             Box(modifier = Modifier
                 .align(Alignment.Bottom)
@@ -457,7 +461,7 @@ fun LevelButton(
                 .weight(1f)
                 .height(30.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary)
+                .background(Green)
             )
         }
     }

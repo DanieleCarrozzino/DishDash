@@ -1,4 +1,4 @@
-package com.carrozzino.dishdash.ui.screen
+package com.carrozzino.dishdash.ui.screen.settings
 
 import android.content.ClipData
 import androidx.compose.foundation.Image
@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,7 +48,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
-import com.carrozzino.dishdash.ui.screen.settings.TitleAndBackButton
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Red50
@@ -87,135 +87,15 @@ fun ChangeHomeCore (
                 indication = null
             ) { /* Absorb clicks */ }
     ) {
-        Column(modifier = modifier.fillMaxSize()) {
-
+        Box(modifier = modifier.fillMaxSize()) {
             TitleAndBackButton(
-                title = "Handle\nyour space!"
+                title = ""
             ) { navController.navigateUp() }
 
-            Box(modifier = Modifier.weight(1f).fillMaxSize()) {
-                // Insert a new code
-                InsertNewCode(modifier = Modifier.align(Alignment.Center)) {
-                    if(it.length > 4)
-                        event(UserIntent.OnUpdatingNewCode(it))
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .padding(horizontal = 30.dp)
-                    .background(MaterialTheme.colorScheme.surface)
-            )
-
-            Box(modifier = Modifier.weight(1f).fillMaxSize()) {
-                // Share your code
-                ShareYourCode(
-                    modifier = Modifier.align(Alignment.Center),
-                    code = state.code
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ShareYourCode(
-    modifier : Modifier = Modifier,
-    code : String = ""
-) {
-    val clipboardManager = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-
-    Column(
-        modifier = modifier.padding(20.dp)
-    ) {
-        Row(modifier = Modifier
-            .padding(bottom = 20.dp)
-            .align(Alignment.CenterHorizontally)) {
-
-            Column(modifier = Modifier
-                .weight(2f)
-                .align(Alignment.Bottom)
-                .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)) {
-
-                Text(
-                    modifier = Modifier.align(Alignment.End),
-                    text = "Invite a new Guest!",
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.End,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Text(
-                    modifier = Modifier.align(Alignment.End),
-                    text = "Share this code to welcome a new member into your house!",
-                    style = MaterialTheme.typography.titleSmall,
-                    textAlign = TextAlign.End,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-            }
-
-
-
-            Image(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-                painter = painterResource(R.drawable.sending_code),
-                contentDescription = "Welcome home"
-            )
-        }
-
-
-        Row(modifier = Modifier
-            .padding(5.dp)
-            .align(Alignment.CenterHorizontally)) {
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 10.dp)
-                    .height(62.dp)
-                    .shadow(elevation = 5.dp, shape = RoundedCornerShape(24.dp))
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 14.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    text = code)
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(62.dp)
-                    .shadow(elevation = 5.dp, shape = RoundedCornerShape(24.dp))
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .clickable {
-                        scope.launch {
-                            val clipData = ClipData.newPlainText("plain text", code)
-                            val clipEntry = ClipEntry(clipData)
-                            clipboardManager.setClipEntry(clipEntry)
-                        }}
-            ) {
-                Icon(
-                    modifier = Modifier.size(22.dp).align(Alignment.Center),
-                    imageVector = Icons.Rounded.CopyAll,
-                    contentDescription =  "",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
+            // Insert a new code
+            InsertNewCode(modifier = Modifier.align(Alignment.Center)) {
+                if(it.length > 4)
+                    event(UserIntent.OnUpdatingNewCode(it))
             }
         }
     }
@@ -231,46 +111,36 @@ fun InsertNewCode(
     Column(
         modifier = modifier.padding(20.dp)
     ) {
-        Row(modifier = Modifier
-            .padding(bottom = 20.dp)
-            .align(Alignment.CenterHorizontally)) {
+        Image(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(0.7f)
+                .align(Alignment.CenterHorizontally),
+            painter = painterResource(R.drawable.welcome_home),
+            contentDescription = "Welcome home"
+        )
 
-            Image(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-                painter = painterResource(R.drawable.welcome_home),
-                contentDescription = "Welcome home"
-            )
+        Text(
+            modifier = Modifier
+                .padding(top = 15.dp)
+                .align(Alignment.CenterHorizontally),
+            text = "Be a new Guest!",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground
+        )
 
-            Column(modifier = Modifier
-                .padding(bottom = 10.dp)
-                .weight(2f)
-                .align(Alignment.Bottom)
-                .padding(start = 10.dp, end = 10.dp)) {
-
-                Text(
-                    modifier = Modifier,
-                    text = "Be a new Guest!",
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.End,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Text(
-                    modifier = Modifier,
-                    text = "Got a friend's code?\nEnter it here to join their world!",
-                    style = MaterialTheme.typography.titleSmall,
-                    textAlign = TextAlign.Start,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
+        Text(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            text = "Got a friend's code?\nEnter it here to join their world!",
+            style = MaterialTheme.typography.titleSmall,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground
+        )
 
         
         Row(modifier = Modifier
-            .padding(5.dp)
+            .padding(vertical = 10.dp, horizontal = 10.dp)
             .align(Alignment.CenterHorizontally)) {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
@@ -336,7 +206,7 @@ fun InsertNewCode(
 
 @Preview()
 @Composable
-fun ListScreenPreview() {
+fun ChangeHomePreview() {
     MaterialTheme(
         colorScheme = LightColorScheme,
         content = {
@@ -349,7 +219,7 @@ fun ListScreenPreview() {
 
 @Preview()
 @Composable
-fun ListScreenPreviewDark() {
+fun ChangeHomePreviewDark() {
     MaterialTheme(
         colorScheme = DarkColorScheme,
         content = {

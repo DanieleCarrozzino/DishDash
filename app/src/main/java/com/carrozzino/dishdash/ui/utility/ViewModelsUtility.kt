@@ -25,25 +25,11 @@ class ViewModelUtility() {
 
         private val formatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("EEEE dd MMMM")
 
-        fun getRemainingDaysWithDates(): List<String> {
-            var today = LocalDate.now()
-
-            if(DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal < 2) {
-                today = today.plusDays(((DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal) + 1).toLong())
-            }
-
-            return (0..DayOfWeek.FRIDAY.ordinal - today.dayOfWeek.ordinal)
-                .map { today.plusDays(it.toLong()) }
-                .map { it.format(formatter) }
-        }
         fun getWeek(): List<String> {
             var today = LocalDate.now()
+            today = today.minusDays(today.dayOfWeek.ordinal.toLong())
 
-            if(DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal < 2)
-                today = today.plusDays(((DayOfWeek.SUNDAY.ordinal - today.dayOfWeek.ordinal) + 1).toLong())
-            else today = today.minusDays(today.dayOfWeek.ordinal.toLong())
-
-            return (0..DayOfWeek.FRIDAY.ordinal)
+            return (0..DayOfWeek.SUNDAY.ordinal)
                 .map { today.plusDays(it.toLong()) }
                 .map { it.format(formatter) }
         }

@@ -281,8 +281,8 @@ class MainViewModel @Inject constructor (
                         error = true)}
             }
 
-            val randomSides = (0..<sizeSides).shuffled().take(minOf(sizeSides, 5).toInt())
-            val randomMain = (0..<sizeMain).shuffled().take(minOf(sizeMain, 5).toInt())
+            val randomSides = (0..<sizeSides).shuffled().take(minOf(sizeSides, days.size.toLong()).toInt())
+            val randomMain = (0..<sizeMain).shuffled().take(minOf(sizeMain, days.size.toLong()).toInt())
 
             for(index in 0..<minOf(randomSides.size, randomMain.size)) {
 

@@ -12,10 +12,10 @@ val DarkColorScheme = darkColorScheme(
     surfaceVariant = DarkBlue.copy(alpha = 0.7f),
     onBackground = White70,
     primary = DarkGreen,
+    onPrimary = Green,
     error = Red20,
     outline = YellowDark,
 
-    onPrimary = Blue70,
     secondary = DarkBlue,
     onSecondary = Red20
 )
@@ -30,6 +30,7 @@ val LightColorScheme = lightColorScheme(
 
 
     primary = Green,
+    onPrimary = DarkGreen,
     secondary = Blue,
     tertiary = Pink40
 

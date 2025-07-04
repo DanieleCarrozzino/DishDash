@@ -18,7 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.ExitToApp
+import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +33,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,17 +40,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Red
 import com.carrozzino.dishdash.ui.theme.settings1
-import com.carrozzino.dishdash.ui.theme.settings2
-import com.carrozzino.dishdash.ui.theme.settings3
-import com.carrozzino.dishdash.ui.theme.settings4
 import com.carrozzino.dishdash.ui.theme.settings5
-import com.carrozzino.dishdash.ui.theme.settings6
 import com.carrozzino.dishdash.ui.viewModels.MainState
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 
@@ -115,60 +109,60 @@ fun SettingsCore (
                         }
 
                         SingleListItem(
-                            title       = "Groups",
+                            title       = "Share your code",
                             color       = MaterialTheme.colorScheme.onBackground,
                             iconColor   = settings5,
-                            icon        = Icons.Rounded.Home
+                            icon        = Icons.Rounded.Code
                         ) {
-//                            navController.navigate(Screen.Groups.route) {
-//                                launchSingleTop = true
-//                            }
+                            navController.navigate(Screen.ShareCode.route) {
+                                launchSingleTop = true
+                            }
                         }
 
-                        SingleListItem(
-                            title       = "Notifications and Sound",
-                            color       = MaterialTheme.colorScheme.onBackground,
-                            iconColor   = settings2,
-                            icon        = Icons.Rounded.Home
-                        ) {
-//                            navController.navigate(Screen.Notification.route) {
-//                                launchSingleTop = true
-//                            }
-                        }
-
-                        SingleListItem(
-                            title       = "Microphone",
-                            color       = MaterialTheme.colorScheme.onBackground,
-                            iconColor   = settings3,
-                            icon        = Icons.Rounded.Home
-                        ) {
-//                            navController.navigate(Screen.Microphone.route) {
-//                                launchSingleTop = true
-//                            }
-                        }
-
-                        SingleListItem(
-                            title           = "About",
-                            color           = MaterialTheme.colorScheme.onBackground,
-                            arrowVisible    = true,
-                            iconColor       = settings4,
-                            icon            = Icons.Rounded.Home
-                        ) {
-//                            navController.navigate(Screen.About.route){
-//                                launchSingleTop = true
-//                            }
-                        }
-
-                        SingleListItem(
-                            title           = "Advanced Settings",
-                            color           = MaterialTheme.colorScheme.onBackground,
-                            iconColor       = settings6,
-                            icon            = Icons.Rounded.Home
-                        ) {
-//                            navController.navigate(Screen.Settings.route){
-//                                launchSingleTop = true
-//                            }
-                        }
+//                        SingleListItem(
+//                            title       = "Notifications and Sound",
+//                            color       = MaterialTheme.colorScheme.onBackground,
+//                            iconColor   = settings2,
+//                            icon        = Icons.Rounded.Home
+//                        ) {
+////                            navController.navigate(Screen.Notification.route) {
+////                                launchSingleTop = true
+////                            }
+//                        }
+//
+//                        SingleListItem(
+//                            title       = "Microphone",
+//                            color       = MaterialTheme.colorScheme.onBackground,
+//                            iconColor   = settings3,
+//                            icon        = Icons.Rounded.Home
+//                        ) {
+////                            navController.navigate(Screen.Microphone.route) {
+////                                launchSingleTop = true
+////                            }
+//                        }
+//
+//                        SingleListItem(
+//                            title           = "About",
+//                            color           = MaterialTheme.colorScheme.onBackground,
+//                            arrowVisible    = true,
+//                            iconColor       = settings4,
+//                            icon            = Icons.Rounded.Home
+//                        ) {
+////                            navController.navigate(Screen.About.route){
+////                                launchSingleTop = true
+////                            }
+//                        }
+//
+//                        SingleListItem(
+//                            title           = "Advanced Settings",
+//                            color           = MaterialTheme.colorScheme.onBackground,
+//                            iconColor       = settings6,
+//                            icon            = Icons.Rounded.Home
+//                        ) {
+////                            navController.navigate(Screen.Settings.route){
+////                                launchSingleTop = true
+////                            }
+//                        }
                     }
                 }
 

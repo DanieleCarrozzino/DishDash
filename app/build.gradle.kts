@@ -30,8 +30,8 @@ android {
         applicationId = "com.carrozzino.dishdash"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.0.1 Trofie"
+        versionCode = 5
+        versionName = "1.0.2 Trofie"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

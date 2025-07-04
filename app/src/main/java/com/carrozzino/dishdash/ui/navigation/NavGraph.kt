@@ -10,11 +10,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.carrozzino.dishdash.ui.screen.AddingScreen
 import com.carrozzino.dishdash.ui.screen.CalendarScreen
-import com.carrozzino.dishdash.ui.screen.ChangeHomeScreen
+import com.carrozzino.dishdash.ui.screen.settings.ChangeHomeScreen
 import com.carrozzino.dishdash.ui.screen.GenerationScreen
 import com.carrozzino.dishdash.ui.screen.LoginScreen
 import com.carrozzino.dishdash.ui.screen.MainScreen
 import com.carrozzino.dishdash.ui.screen.settings.SettingsScreen
+import com.carrozzino.dishdash.ui.screen.settings.SharePersonalCodeScreen
 import com.carrozzino.dishdash.ui.viewModels.LoginViewModel
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 
@@ -26,6 +27,7 @@ sealed class Screen(val route : String) {
     data object Calendar : Screen("Calendar")
     data object Settings : Screen("Settings")
     data object ChangeHome : Screen("ChangeHome")
+    data object ShareCode : Screen("ShareCode")
 }
 
 @Composable
@@ -105,6 +107,16 @@ fun SetupNavGraph(
             route = Screen.ChangeHome.route
         ) {
             ChangeHomeScreen(
+                modifier = modifier,
+                navController = navController,
+                viewmodel = main
+            )
+        }
+
+        composable(
+            route = Screen.ShareCode.route
+        ) {
+            SharePersonalCodeScreen(
                 modifier = modifier,
                 navController = navController,
                 viewmodel = main
