@@ -98,8 +98,8 @@ fun GeneratingImageAnimation(
     ) { internal ->
         FoodAvatar(
             modifier = modifier,
-            list = ViewModelUtility.listImages,
-            id = internal
+            image = if(ViewModelUtility.listImages.contains(internal))
+                ViewModelUtility.listImages[internal] else R.drawable.star
         )
     }
 

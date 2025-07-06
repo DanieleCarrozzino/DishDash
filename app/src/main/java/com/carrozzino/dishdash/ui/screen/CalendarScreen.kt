@@ -125,8 +125,7 @@ fun CalendarCore(
 @Composable
 fun FoodAvatar(
     modifier    : Modifier = Modifier,
-    list        : List<Int> = ViewModelUtility.listImages,
-    id          : Int = 0,
+    image       : Int = R.drawable.star,
     small       : Boolean = false,
 ) {
     val offsetXSize = 20
@@ -158,7 +157,7 @@ fun FoodAvatar(
                 .graphicsLayer(
                     rotationZ = 10 * offsetX
                 ),
-            painter = painterResource(list[id]),
+            painter = painterResource(image),
             contentDescription = ""
         )
 
@@ -320,7 +319,8 @@ fun CalendarSingleCore(
 
         FoodAvatar(
             modifier = Modifier.align(Alignment.Center).alpha(if(isToday) 1f else 0.6f),
-            id = recipe.idImage
+            if(ViewModelUtility.listImages.contains(recipe.idImage))
+                ViewModelUtility.listImages[recipe.idImage] else R.drawable.star
         )
 
         Column(modifier = Modifier
@@ -390,7 +390,8 @@ fun CalendarSingleCoreMinimal(
             modifier = Modifier
                 .align(Alignment.Center)
                 .alpha(if(isToday) 1f else 0.6f),
-            id = recipe.idImage,
+            image = if(ViewModelUtility.listImages.contains(recipe.idImage))
+                ViewModelUtility.listImages[recipe.idImage] else R.drawable.star,
             small = true
         )
 

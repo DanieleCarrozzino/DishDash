@@ -211,8 +211,7 @@ fun PlaceHolderEmptyWeek(
         FoodAvatar(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally),
-            list = listOf<Int>(R.drawable.pot),
-            id = 0,
+            image = R.drawable.pot,
             small = false
         )
         Text(
