@@ -25,8 +25,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,7 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
-import com.carrozzino.dishdash.data.repository.models.RecipeModel
+import com.carrozzino.dishdash.data.database.models.RecipeModel
 import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.White90
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
@@ -230,7 +230,7 @@ fun BottomButtons(
             Text(text = "open recipe", color = White90)
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Icon(
-                Icons.Filled.KeyboardArrowRight,
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "open recipe button",
                 modifier = Modifier.size(ButtonDefaults.IconSize),
                 tint = White90

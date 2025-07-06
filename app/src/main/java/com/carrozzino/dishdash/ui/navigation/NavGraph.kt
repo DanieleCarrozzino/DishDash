@@ -14,6 +14,8 @@ import com.carrozzino.dishdash.ui.screen.settings.ChangeHomeScreen
 import com.carrozzino.dishdash.ui.screen.GenerationScreen
 import com.carrozzino.dishdash.ui.screen.LoginScreen
 import com.carrozzino.dishdash.ui.screen.MainScreen
+import com.carrozzino.dishdash.ui.screen.WeekListScreen
+import com.carrozzino.dishdash.ui.screen.settings.AboutScreen
 import com.carrozzino.dishdash.ui.screen.settings.SettingsScreen
 import com.carrozzino.dishdash.ui.screen.settings.SharePersonalCodeScreen
 import com.carrozzino.dishdash.ui.viewModels.LoginViewModel
@@ -28,6 +30,8 @@ sealed class Screen(val route : String) {
     data object Settings : Screen("Settings")
     data object ChangeHome : Screen("ChangeHome")
     data object ShareCode : Screen("ShareCode")
+    data object About : Screen("About")
+    data object WeekList : Screen("WeekList")
 }
 
 @Composable
@@ -117,6 +121,26 @@ fun SetupNavGraph(
             route = Screen.ShareCode.route
         ) {
             SharePersonalCodeScreen(
+                modifier = modifier,
+                navController = navController,
+                viewmodel = main
+            )
+        }
+
+        composable(
+            route = Screen.About.route
+        ) {
+            AboutScreen(
+                modifier = modifier,
+                navController = navController,
+                viewmodel = main
+            )
+        }
+
+        composable(
+            route = Screen.WeekList.route
+        ) {
+            WeekListScreen(
                 modifier = modifier,
                 navController = navController,
                 viewmodel = main

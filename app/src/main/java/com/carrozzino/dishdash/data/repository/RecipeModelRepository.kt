@@ -1,6 +1,7 @@
-package com.carrozzino.dishdash.data.repository.database
+package com.carrozzino.dishdash.data.repository
 
-import com.carrozzino.dishdash.data.repository.models.RecipeModel
+import com.carrozzino.dishdash.data.database.RecipeModelDatabase
+import com.carrozzino.dishdash.data.database.models.RecipeModel
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

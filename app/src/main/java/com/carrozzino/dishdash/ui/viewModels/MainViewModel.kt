@@ -8,9 +8,9 @@ import com.carrozzino.dishdash.data.internal.Preferences
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
-import com.carrozzino.dishdash.data.repository.database.RecipeModelRepository
-import com.carrozzino.dishdash.data.repository.models.RecipeDayModel
-import com.carrozzino.dishdash.data.repository.models.RecipeModel
+import com.carrozzino.dishdash.data.repository.RecipeModelRepository
+import com.carrozzino.dishdash.data.database.models.RecipeDayModel
+import com.carrozzino.dishdash.data.database.models.RecipeModel
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility.Companion.RECIPE_MODULE
 import com.google.firebase.database.DataSnapshot
@@ -37,17 +37,17 @@ enum class MainStatus {
 }
 
 data class MainState (
-    val recipes     : List<RecipeDayModel>  = listOf<RecipeDayModel>(),
-    val actualDate  : String                = "",
-    val state       : MainStatus            = MainStatus.DEFAULT,
-    val code        : String                = ""
+    val recipes         : List<RecipeDayModel>  = listOf<RecipeDayModel>(),
+    val actualDate      : String                = "",
+    val state           : MainStatus            = MainStatus.DEFAULT,
+    val personalCode    : String                = ""
 )
 
 data class AddingState (
-    val uploading : Boolean = false,
-    val error : Boolean = false,
-    val uri : Uri? = null,
-    val recipe : Recipe = Recipe()
+    val uploading   : Boolean = false,
+    val error       : Boolean = false,
+    val uri         : Uri? = null,
+    val recipe      : Recipe = Recipe()
 )
 
 data class GeneratingState (
@@ -141,7 +141,7 @@ class MainViewModel @Inject constructor (
     fun observeWeek() {
         // update internal references
         code = preferences.getString("code")
-        _mainState.update { it.copy( code = code) }
+        _mainState.update { it.copy( personalCode = code) }
 
         // Get the recipes from the real time database
         databaseReference = database.getValues(RECIPE_MODULE, listOf(code))
@@ -189,7 +189,6 @@ class MainViewModel @Inject constructor (
             is UserIntent.OnUpdatingNewCode -> {
                 updatingWithANewCode(userIntent.code)
             }
-            else -> {}
         }
     }
 

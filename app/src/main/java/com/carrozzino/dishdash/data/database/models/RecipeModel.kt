@@ -1,4 +1,4 @@
-package com.carrozzino.dishdash.data.repository.models
+package com.carrozzino.dishdash.data.database.models
 
 import androidx.annotation.Keep
 import androidx.room.Entity

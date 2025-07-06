@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Home
@@ -45,6 +46,7 @@ import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Red
 import com.carrozzino.dishdash.ui.theme.settings1
+import com.carrozzino.dishdash.ui.theme.settings4
 import com.carrozzino.dishdash.ui.theme.settings5
 import com.carrozzino.dishdash.ui.viewModels.MainState
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
@@ -141,17 +143,17 @@ fun SettingsCore (
 ////                            }
 //                        }
 //
-//                        SingleListItem(
-//                            title           = "About",
-//                            color           = MaterialTheme.colorScheme.onBackground,
-//                            arrowVisible    = true,
-//                            iconColor       = settings4,
-//                            icon            = Icons.Rounded.Home
-//                        ) {
-////                            navController.navigate(Screen.About.route){
-////                                launchSingleTop = true
-////                            }
-//                        }
+                        SingleListItem(
+                            title           = "About",
+                            color           = MaterialTheme.colorScheme.onBackground,
+                            arrowVisible    = true,
+                            iconColor       = settings4,
+                            icon            = Icons.Outlined.Info
+                        ) {
+                            navController.navigate(Screen.About.route){
+                                launchSingleTop = true
+                            }
+                        }
 //
 //                        SingleListItem(
 //                            title           = "Advanced Settings",
@@ -310,7 +312,7 @@ fun TitleAndBackButton(
                 .padding(horizontal = 15.dp),
             text        = title,
             color       = MaterialTheme.colorScheme.onBackground,
-            style       = MaterialTheme.typography.headlineLarge,
+            style       = MaterialTheme.typography.titleLarge,
         )
 
         Surface(

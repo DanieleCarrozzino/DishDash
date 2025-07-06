@@ -1,10 +1,10 @@
-package com.carrozzino.dishdash.data.repository.database.dao
+package com.carrozzino.dishdash.data.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.carrozzino.dishdash.data.repository.models.RecipeModel
+import com.carrozzino.dishdash.data.database.models.RecipeModel
 import kotlinx.coroutines.flow.Flow
 
 @Dao

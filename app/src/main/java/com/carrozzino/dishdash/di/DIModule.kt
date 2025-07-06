@@ -12,8 +12,8 @@ import com.carrozzino.dishdash.data.network.storage.implementations.FirebaseStor
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
-import com.carrozzino.dishdash.data.repository.database.RecipeModelDatabase
-import com.carrozzino.dishdash.data.repository.database.RecipeModelRepository
+import com.carrozzino.dishdash.data.database.RecipeModelDatabase
+import com.carrozzino.dishdash.data.repository.RecipeModelRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
