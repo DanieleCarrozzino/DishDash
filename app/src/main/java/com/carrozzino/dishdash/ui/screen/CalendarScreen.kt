@@ -319,7 +319,7 @@ fun CalendarSingleCore(
 
         FoodAvatar(
             modifier = Modifier.align(Alignment.Center).alpha(if(isToday) 1f else 0.6f),
-            if(ViewModelUtility.listImages.contains(recipe.idImage))
+            if(recipe.idImage < ViewModelUtility.listImages.size)
                 ViewModelUtility.listImages[recipe.idImage] else R.drawable.star
         )
 
@@ -390,7 +390,7 @@ fun CalendarSingleCoreMinimal(
             modifier = Modifier
                 .align(Alignment.Center)
                 .alpha(if(isToday) 1f else 0.6f),
-            image = if(ViewModelUtility.listImages.contains(recipe.idImage))
+            image = if(recipe.idImage < ViewModelUtility.listImages.size)
                 ViewModelUtility.listImages[recipe.idImage] else R.drawable.star,
             small = true
         )
