@@ -16,7 +16,8 @@ data class RecipeModel (
     val mainRecipe : String = "",
     val sideRecipe : String = "",
     val urlImage : String = "",
-    val idImage : Int = 0
+    val idImage : Int = 0,
+    val serverId : Int = -1
 )
 
 @Keep

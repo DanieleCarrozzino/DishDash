@@ -65,7 +65,7 @@ fun AboutCore (
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 15.dp),
-                    text        = "Design and produced by",
+                    text        = "Designed and produced by",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
                 )

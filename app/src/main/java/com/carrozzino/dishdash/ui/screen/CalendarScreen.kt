@@ -1,9 +1,12 @@
 package com.carrozzino.dishdash.ui.screen
 
+import android.R.attr.action
 import android.os.Build
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -32,6 +35,7 @@ import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -97,6 +102,7 @@ fun CalendarCore(
 ) {
 
     val state = viewModel.mainState.collectAsState().value
+    val generationState = viewModel.generatingState.collectAsState().value
 
     val pagerState = rememberPagerState(
         pageCount = { state.recipes.size },
@@ -109,10 +115,23 @@ fun CalendarCore(
         }
     }
 
+    val alpha by animateFloatAsState(
+        targetValue = if(generationState.generating) 0f else 1f
+    )
+
     Box(modifier = Modifier
         .fillMaxSize()) {
 
-        HorizontalPager(state = pagerState) { page ->
+        HorizontalPager(
+            modifier = Modifier.graphicsLayer(
+                alpha = lerp(
+                    start = 0.5f,
+                    stop = 1f,
+                    fraction = alpha
+                )
+            ),
+            state = pagerState
+        ) { page ->
             println("Page loaded $page")
 
             if(state.recipes.size < page) return@HorizontalPager
@@ -126,6 +145,15 @@ fun CalendarCore(
             ) {
                 navController.navigate(Screen.Home.route)
             }
+        }
+
+        AnimatedVisibility(
+            modifier = Modifier.align(Alignment.Center),
+            visible = generationState.generating
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
     }
 }
@@ -394,14 +422,14 @@ fun CalendarSingleCore(
                 sheetState = sheetState
             ) {
                 Text(
-                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 18.dp),
+                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 24.dp),
                     text = "Would you like to change this week's recipe?",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
-                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 18.dp),
+                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 24.dp),
                     text = "You can either select a recipe yourself from the full list or let us pick a random one for you.",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground
@@ -410,14 +438,15 @@ fun CalendarSingleCore(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
                         modifier = Modifier.padding(
-                            start = 18.dp,
+                            start = 24.dp,
                             end = 9.dp,
                             top = 10.dp,
-                            bottom = 10.dp
+                            bottom = 14.dp
                         ).weight(1f),
                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                         onClick = {
-                            // TODO
+                            action(UserIntent.OnChangeSingleRecipe(false, recipe))
+                            showBottomSheet = false
                         }) {
                         Icon(
                             Icons.AutoMirrored.Outlined.MenuBook,
@@ -432,16 +461,17 @@ fun CalendarSingleCore(
                     Button(
                         modifier = Modifier.padding(
                             start = 9.dp,
-                            end = 18.dp,
+                            end = 24.dp,
                             top = 10.dp,
-                            bottom = 10.dp
+                            bottom = 14.dp
                         ).weight(1f),
                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
                         ),
                         onClick = {
-                            // TODO
+                            action(UserIntent.OnChangeSingleRecipe(true, recipe))
+                            showBottomSheet = false
                         }) {
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                         Text(text = "generate", color = White90)

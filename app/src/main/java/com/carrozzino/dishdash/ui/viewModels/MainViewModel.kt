@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,6 +72,7 @@ sealed class UserIntent {
     data object OnGenerateNewWeek : UserIntent()
     data class OnOpenLinkRecipe(val link : String) : UserIntent()
     data class OnUpdatingNewCode(val code : String) : UserIntent()
+    data class OnChangeSingleRecipe(val autoGenerate : Boolean, val recipe : RecipeModel) : UserIntent()
 }
 
 @HiltViewModel
@@ -186,6 +188,22 @@ class MainViewModel @Inject constructor (
             is UserIntent.OnUpdatingNewCode -> {
                 updatingWithANewCode(userIntent.code)
             }
+            is UserIntent.OnChangeSingleRecipe -> {
+                changeSingleRecipe(userIntent.autoGenerate, userIntent.recipe)
+            }
+        }
+    }
+
+    private fun changeSingleRecipe(autoGenerate : Boolean, recipe : RecipeModel) {
+        // use the firestore to update and generate a new recipe
+        if(autoGenerate) {
+            val recipeDay   = _mainState.value.recipes.find { it.recipeModel == recipe }
+            val index       = _mainState.value.recipes.indexOf(recipeDay)
+
+            generate(index)
+        } else {
+            // TODO open a different screen with the entire list of the recipes
+            // need to call the firestoreRepository.loadAllRecipes()
         }
     }
 
@@ -242,14 +260,23 @@ class MainViewModel @Inject constructor (
         }
     }
 
-    fun generate() {
+    fun generate(indexToUpdate : Int = -1) {
         _generatingState.update {
             it.copy(
                 generating = true,
                 error = false)}
 
         viewModelScope.launch {
-            val map = firestoreRepository.generate(days.size)
+
+            val map = if(indexToUpdate < 0) {
+                firestoreRepository.generate(days.size)
+            } else {
+                firestoreRepository.generateJustOne(
+                    idsToAvoid = _mainState.value.recipes.map { it.recipeModel.serverId },
+                    indexToUpdate = indexToUpdate
+                )
+            }
+
             if(map.isEmpty()) {
                 _generatingState.update {
                     it.copy(
@@ -259,6 +286,7 @@ class MainViewModel @Inject constructor (
                 }
             }
 
+            delay(500)
             database.putValues(
                 module      = RECIPE_MODULE,
                 children    = listOf(code),

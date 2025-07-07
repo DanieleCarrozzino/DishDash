@@ -26,55 +26,77 @@ class FirebaseFirestoreRepository @Inject constructor(
         }
     }
 
-    suspend fun generate(daysSize : Int) : Map<String, Any> = withContext(Dispatchers.IO) {
-
-        val map = mutableMapOf<String, Any>()
-
+    private suspend fun initSizes() {
         sizeSides = getOrKeep(sizeSides) { firestore.size("total_side_recipes", it) }
         sizeMains = getOrKeep(sizeMains) { firestore.size("total_recipes", it) }
+    }
+
+    suspend fun generateJustOne(idsToAvoid : List<Int>, indexToUpdate : Int) : Map<String, Any> = withContext(Dispatchers.IO) {
+
+        val map = mutableMapOf<String, Any>()
+        initSizes()
 
         if(sizeMains == 0L || sizeSides == 0L) map
 
-        // Get
+        var randomMainIndex = (0..<sizeMains).shuffled().take(1)[0].toInt()
+        while(idsToAvoid.contains(randomMainIndex))
+            randomMainIndex = (0..<sizeMains).shuffled().take(1)[0].toInt()
+
+
+        map[indexToUpdate.toString()] = getRecipe(randomMainIndex.toLong())
+        map
+    }
+
+    suspend fun generate(daysSize : Int) : Map<String, Any> = withContext(Dispatchers.IO) {
+
+        val map = mutableMapOf<String, Any>()
+        initSizes()
+
+        if(sizeMains == 0L || sizeSides == 0L) map
+
         val randomSides = (0..<sizeSides).shuffled().take(minOf(sizeSides, daysSize.toLong()).toInt())
         val randomMain = (0..<sizeMains).shuffled().take(minOf(sizeMains, daysSize.toLong()).toInt())
 
         for(index in 0..<minOf(randomSides.size, randomMain.size)) {
-
-            if(!mapMains.containsKey(index)) {
-                val document = suspendCoroutine<DocumentSnapshot> { block ->
-                    firestore.get("total_recipes", randomMain[index].toString()).addOnCompleteListener{ result ->
-                        block.resume(result.result)
-                    }
-                }
-                mapMains[index] = document
-            }
-
-            if(mapMains[index]?.get("needASide")?.toString() == "true" && !mapSides.containsKey(index)) {
-                val document = suspendCoroutine<DocumentSnapshot> { block ->
-                    firestore.get("total_side_recipes", randomMain[index].toString()).addOnCompleteListener{ result ->
-                        block.resume(result.result)
-                    }
-                }
-                mapSides[index] = document
-            }
-
-            val hash = hashMapOf<String, Any>(
-                "main" to (mapMains[index]?.get("title")?.toString() ?: ""),
-                "mainIngredients" to (mapMains[index]?.get("ingredients")?.toString() ?: ""),
-                "urlImage" to (mapMains[index]?.get("urlImage")?.toString() ?: ""),
-                "idImage" to (mapMains[index]?.get("idImage") ?: 0),
-                "link" to (mapMains[index]?.get("link")?.toString() ?: "")
-            )
-
-            mapSides.get(index)?.let {
-                hash.put("side", (it["title"]?.toString() ?: ""))
-                hash.put("sideIngredients", (it["ingredients"]?.toString() ?: ""))
-            }
-
-            map[index.toString()] = hash
+            map[index.toString()] = getRecipe(randomMain[index])
         }
         map
+    }
+
+    suspend fun getRecipe(randomIndexMain : Long) : Map<String, Any> {
+        if(!mapMains.containsKey(randomIndexMain.toInt())) {
+            val document = suspendCoroutine<DocumentSnapshot> { block ->
+                firestore.get("total_recipes", randomIndexMain.toString()).addOnCompleteListener{ result ->
+                    block.resume(result.result)
+                }
+            }
+            mapMains[randomIndexMain.toInt()] = document
+        }
+
+        if(mapMains[randomIndexMain.toInt()]?.get("needASide")?.toString() == "true" && !mapSides.containsKey(randomIndexMain.toInt())) {
+            val document = suspendCoroutine<DocumentSnapshot> { block ->
+                firestore.get("total_side_recipes", randomIndexMain.toString()).addOnCompleteListener{ result ->
+                    block.resume(result.result)
+                }
+            }
+            mapSides[randomIndexMain.toInt()] = document
+        }
+
+        val hash = hashMapOf<String, Any>(
+            "main"              to (mapMains[randomIndexMain.toInt()]?.get("title")?.toString() ?: ""),
+            "mainIngredients"   to (mapMains[randomIndexMain.toInt()]?.get("ingredients")?.toString() ?: ""),
+            "urlImage"          to (mapMains[randomIndexMain.toInt()]?.get("urlImage")?.toString() ?: ""),
+            "idImage"           to (mapMains[randomIndexMain.toInt()]?.get("idImage") ?: 0),
+            "link"              to (mapMains[randomIndexMain.toInt()]?.get("link")?.toString() ?: ""),
+            "serverId"          to randomIndexMain.toInt()
+        )
+
+        mapSides.get(randomIndexMain.toInt())?.let {
+            hash.put("side", (it["title"]?.toString() ?: ""))
+            hash.put("sideIngredients", (it["ingredients"]?.toString() ?: ""))
+        }
+
+        return hash
     }
 
     suspend fun add(recipe : Recipe) : Task<Void?>? = withContext(Dispatchers.IO) {
