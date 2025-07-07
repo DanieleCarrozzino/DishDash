@@ -5,7 +5,9 @@ import com.google.firebase.database.DatabaseReference
 
 interface FirebaseRealtimeDatabaseInterface {
 
-    fun putValues(module: String, children: List<String>, index : Int, node: HashMap<String, Any>) : Task<Void>
+    fun putValue(module: String, children: List<String>, index : Int, node: HashMap<String, Any>) : Task<Void>
+
+    fun putValues(module: String, children: List<String>, nodes: Map<String, Any>) : Task<Void>
 
     fun getValues(module : String, children : List<String>) : DatabaseReference
 

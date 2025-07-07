@@ -26,17 +26,25 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,8 +69,8 @@ import com.carrozzino.dishdash.data.database.models.RecipeModel
 import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.White90
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
-import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
+import com.carrozzino.dishdash.ui.viewModels.UserIntent
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -187,7 +195,7 @@ fun FoodAvatar(
 fun BottomButtons(
     modifier    : Modifier = Modifier,
     recipe      : RecipeModel = RecipeModel(),
-    action      : (UserIntent) -> Unit = {}
+    action      : (UserIntent?) -> Unit = {}
 ) {
     Row(modifier = modifier) {
         Button(
@@ -199,16 +207,16 @@ fun BottomButtons(
             ).weight(1f),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             onClick = {
-                // TODO
+                action(null)
             }) {
             Icon(
                 Icons.Filled.Create,
-                contentDescription = "modify button",
+                contentDescription = "change button",
                 modifier = Modifier.size(ButtonDefaults.IconSize),
                 tint = White90
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(text = "modify", color = White90)
+            Text(text = "change", color = White90)
         }
 
         Button(
@@ -263,6 +271,7 @@ fun CalendarSingleCoreFullScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarSingleCore(
     modifier : Modifier = Modifier,
@@ -272,6 +281,10 @@ fun CalendarSingleCore(
     action      : (UserIntent) -> Unit = {},
     navigate    : () -> Unit = {}
 ) {
+
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     val isToday = date == today
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -365,9 +378,83 @@ fun CalendarSingleCore(
 
             BottomButtons(
                 modifier = Modifier,
-                recipe = recipe,
-                action = action
-            )
+                recipe = recipe
+            ) {
+                if(it == null) {
+                    showBottomSheet = true
+                } else action(it)
+            }
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showBottomSheet = false
+                },
+                sheetState = sheetState
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 18.dp),
+                    text = "Would you like to change this week's recipe?",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 18.dp),
+                    text = "You can either select a recipe yourself from the full list or let us pick a random one for you.",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        modifier = Modifier.padding(
+                            start = 18.dp,
+                            end = 9.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        ).weight(1f),
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                        onClick = {
+                            // TODO
+                        }) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.MenuBook,
+                            contentDescription = "pick by me button",
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                            tint = White90
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(text = "pick", color = White90)
+                    }
+
+                    Button(
+                        modifier = Modifier.padding(
+                            start = 9.dp,
+                            end = 18.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        ).weight(1f),
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                        ),
+                        onClick = {
+                            // TODO
+                        }) {
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(text = "generate", color = White90)
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Icon(
+                            Icons.Outlined.Autorenew,
+                            contentDescription = "generate single one new recipe button",
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                            tint = White90
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -418,6 +505,8 @@ fun CalendarSingleCoreMinimal(
                 text = recipe.main,
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onBackground
             )
         }

@@ -4,20 +4,19 @@ import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.carrozzino.dishdash.data.internal.Preferences
-import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
-import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
-import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
-import com.carrozzino.dishdash.data.repository.RecipeModelRepository
 import com.carrozzino.dishdash.data.database.models.RecipeDayModel
 import com.carrozzino.dishdash.data.database.models.RecipeModel
+import com.carrozzino.dishdash.data.internal.Preferences
+import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
+import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
+import com.carrozzino.dishdash.data.repository.FirebaseFirestoreRepository
+import com.carrozzino.dishdash.data.repository.RecipeModelRepository
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility.Companion.RECIPE_MODULE
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.firestore.DocumentSnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 enum class MainStatus {
     DEFAULT,
@@ -79,7 +76,7 @@ sealed class UserIntent {
 @HiltViewModel
 class MainViewModel @Inject constructor (
     val database        : FirebaseRealtimeDatabaseInterface,
-    val firestore       : FirebaseFirestoreDatabaseInterface,
+    val firestoreRepository: FirebaseFirestoreRepository,
     val storage         : FirebaseStorageInterface,
     val localDatabase   : RecipeModelRepository,
     val preferences     : Preferences
@@ -232,17 +229,8 @@ class MainViewModel @Inject constructor (
             error = false,
             recipe = recipe)}
 
-        firestore.size(if(recipe.isSide) "total_side_recipes" else "total_recipes") {
-            firestore.put(if(recipe.isSide) "total_side_recipes" else "total_recipes",
-                it.toString(), hashMapOf<String, Any>(
-                "title" to recipe.title,
-                "ingredients" to recipe.ingredients,
-                "link" to recipe.link,
-                "seasons" to recipe.seasons,
-                "urlImage" to recipe.url,
-                "needASide" to recipe.needASide,
-                "idImage" to recipe.idImage,
-            )).addOnCompleteListener { response ->
+        viewModelScope.launch {
+            firestoreRepository.add(recipe)?.addOnCompleteListener { response ->
                 if(response.isSuccessful) {
                     clearAddingRecipe()
                 } else {
@@ -260,68 +248,27 @@ class MainViewModel @Inject constructor (
                 generating = true,
                 error = false)}
 
-        viewModelScope.launch(Dispatchers.IO) {
-            val sizeSides = suspendCoroutine<Long> { block ->
-                firestore.size("total_side_recipes") { result ->
-                    block.resume(result)
-                }
-            }
-
-            val sizeMain = suspendCoroutine<Long> { block ->
-                firestore.size("total_recipes") { result ->
-                    block.resume(result)
-                }
-            }
-
-            if(sizeMain == 0L && sizeSides == 0L) {
+        viewModelScope.launch {
+            val map = firestoreRepository.generate(days.size)
+            if(map.isEmpty()) {
                 _generatingState.update {
                     it.copy(
                         generating = false,
-                        error = true)}
+                        error = true
+                    )
+                }
             }
 
-            val randomSides = (0..<sizeSides).shuffled().take(minOf(sizeSides, days.size.toLong()).toInt())
-            val randomMain = (0..<sizeMain).shuffled().take(minOf(sizeMain, days.size.toLong()).toInt())
-
-            for(index in 0..<minOf(randomSides.size, randomMain.size)) {
-
-                // Get the main
-                val main = suspendCoroutine<DocumentSnapshot> { block ->
-                    firestore.get("total_recipes", randomMain[index].toString()).addOnCompleteListener{ result ->
-                        block.resume(result.result)
-                    }
+            database.putValues(
+                module      = RECIPE_MODULE,
+                children    = listOf(code),
+                nodes       = map
+            ).addOnCompleteListener { result ->
+                _generatingState.update {
+                    it.copy(
+                        generating = false,
+                        error = !result.isSuccessful)
                 }
-
-                // Get the side
-                val side : DocumentSnapshot? = if(main["needASide"]?.toString() == "true") {
-                     suspendCoroutine<DocumentSnapshot> { block ->
-                        firestore.get("total_side_recipes", randomSides[index].toString())
-                            .addOnCompleteListener { result ->
-                                block.resume(result.result)
-                            }
-                    }
-                } else null
-
-                val hash = hashMapOf<String, Any>(
-                    "main" to (main["title"]?.toString() ?: ""),
-                    "mainIngredients" to (main["ingredients"]?.toString() ?: ""),
-                    "urlImage" to (main["urlImage"]?.toString() ?: ""),
-                    "idImage" to (main["idImage"] ?: 0),
-                    "link" to (main["link"]?.toString() ?: "")
-                )
-
-                side?.let {
-                    hash.put("side", (it["title"]?.toString() ?: ""))
-                    hash.put("sideIngredients", (it["ingredients"]?.toString() ?: ""))
-                }
-
-                database.putValues(RECIPE_MODULE, listOf(code), index, hash)
-                    .addOnCompleteListener { result ->
-                        _generatingState.update {
-                            it.copy(
-                                generating = false,
-                                error = !result.isSuccessful)}
-                    }
             }
         }
     }

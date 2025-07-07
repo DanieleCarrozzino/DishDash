@@ -13,6 +13,7 @@ import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestore
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
 import com.carrozzino.dishdash.data.database.RecipeModelDatabase
+import com.carrozzino.dishdash.data.repository.FirebaseFirestoreRepository
 import com.carrozzino.dishdash.data.repository.RecipeModelRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
@@ -69,6 +70,14 @@ object DIModule {
     @Provides
     fun providesFirebaseStorage(): FirebaseStorageInterface {
         return FirebaseStorageImpl()
+    }
+
+    @Singleton
+    @Provides
+    fun providesFirebaseFirestoreRepository(
+        firestore : FirebaseFirestoreDatabaseInterface
+    ): FirebaseFirestoreRepository {
+        return FirebaseFirestoreRepository(firestore)
     }
 
     @Provides

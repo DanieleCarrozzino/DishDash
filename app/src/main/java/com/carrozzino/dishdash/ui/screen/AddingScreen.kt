@@ -91,10 +91,10 @@ import com.carrozzino.dishdash.ui.theme.Red50
 import com.carrozzino.dishdash.ui.theme.White90
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
 import com.carrozzino.dishdash.ui.viewModels.AddingState
-import com.carrozzino.dishdash.ui.viewModels.UserIntent
-import com.carrozzino.dishdash.ui.viewModels.UserIntent.OnImageSelected
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import com.carrozzino.dishdash.ui.viewModels.Recipe
+import com.carrozzino.dishdash.ui.viewModels.UserIntent
+import com.carrozzino.dishdash.ui.viewModels.UserIntent.OnImageSelected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -602,22 +602,22 @@ fun AddingCore(
             Row(modifier = Modifier.padding(horizontal = 18.dp)) {
                 CheckBoxTitle(
                     modifier = Modifier.weight(1f),
-                    title = "Spring",
+                    title = "Spr",
                     checked = seasons.contains(0)
                 ) { if (it) seasons.add(0) else seasons.remove(0) }
                 CheckBoxTitle(
                     modifier = Modifier.weight(1f),
-                    title = "Summer",
+                    title = "Sum",
                     checked = seasons.contains(1)
                 ) { if (it) seasons.add(1) else seasons.remove(1) }
                 CheckBoxTitle(
                     modifier = Modifier.weight(1f),
-                    title = "Autumn",
+                    title = "Aut",
                     checked = seasons.contains(2)
                 ) { if (it) seasons.add(2) else seasons.remove(2) }
                 CheckBoxTitle(
                     modifier = Modifier.weight(1f),
-                    title = "Winter",
+                    title = "Win",
                     checked = seasons.contains(3)
                 ) { if (it) seasons.add(3) else seasons.remove(3) }
             }
@@ -740,6 +740,7 @@ fun CheckBoxTitle(
         Column(modifier = Modifier.padding(3.dp).align(Alignment.Center)) {
             Text(
                 modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
                     .padding(start = 3.dp, bottom = 6.dp, top = 3.dp, end = 3.dp),
                 text = title,
                 style = MaterialTheme.typography.titleSmall)
