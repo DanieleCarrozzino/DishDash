@@ -1,5 +1,7 @@
 package com.carrozzino.dishdash.ui.screen.settings
 
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,6 +54,16 @@ fun AboutCore (
     state           : MainState     = MainState(),
     event           : (UserIntent) -> Unit = {}
 ) {
+
+    val context         = LocalContext.current
+    val packageName     = context.packageName
+    val packageManager  = context.packageManager
+    val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+    } else {
+        packageManager.getPackageInfo(packageName, 0)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -88,6 +102,16 @@ fun AboutCore (
                         .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 15.dp),
                     text        = "aka Lilìn and Carrozzén",
+                    color       = MaterialTheme.colorScheme.onBackground,
+                    style       = MaterialTheme.typography.titleMedium,
+                )
+
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 15.dp)
+                        .alpha(0.6f),
+                    text        = packageInfo.versionName.toString(),
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
                 )
