@@ -1,11 +1,13 @@
 package com.carrozzino.dishdash.ui.screen.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,11 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.carrozzino.dishdash.R
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.viewModels.MainState
@@ -65,7 +69,7 @@ fun AboutCore (
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 15.dp),
-                    text        = "Designed and produced by",
+                    text        = "Designed and Produced by",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
                 )
@@ -74,7 +78,7 @@ fun AboutCore (
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 15.dp),
-                    text        = "Daniele Carrozzino",
+                    text        = "Ilaria Falbo and Daniele Carrozzino",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleLarge,
                 )
@@ -83,13 +87,19 @@ fun AboutCore (
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(horizontal = 15.dp),
-                    text        = "aka Carrozzén",
+                    text        = "aka Lilìn and Carrozzén",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
                 )
             }
 
         }
+
+        Image(
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(0.7f),
+            painter = painterResource(R.drawable.me),
+            contentDescription = "Personal image"
+        )
     }
 }
 

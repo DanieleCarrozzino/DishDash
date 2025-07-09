@@ -140,6 +140,7 @@ fun CalendarCore(
                 modifier    = modifier,
                 recipe      = state.personalMeals[page].meal,
                 date        = state.personalMeals[page].date,
+                page        = page,
                 today       = state.actualDate,
                 action      = viewModel::onReceive
             ) { route ->
@@ -282,6 +283,7 @@ fun CalendarSingleCoreFullScreen(
     recipe : Meal = Meal(),
     date : String = "",
     today : String = "",
+    page : Int = 0,
     action : (UserIntent) -> Unit = {},
     navigate : (String) -> Unit = {}
 ) {
@@ -299,6 +301,7 @@ fun CalendarSingleCoreFullScreen(
             recipe      = recipe,
             date        = date,
             today       = today,
+            page        = page,
             navigate    = navigate,
             action      = action,
         )
@@ -309,9 +312,10 @@ fun CalendarSingleCoreFullScreen(
 @Composable
 fun CalendarSingleCore(
     modifier : Modifier = Modifier,
-    recipe : Meal = Meal(),
-    date : String = "",
-    today : String = "",
+    recipe  : Meal      = Meal(),
+    date    : String    = "",
+    today   : String    = "",
+    page    : Int       = 0,
     action      : (UserIntent) -> Unit = {},
     navigate    : (String) -> Unit = {}
 ) {
@@ -463,7 +467,7 @@ fun CalendarSingleCore(
                         onClick = {
                             action(UserIntent.OnAskingForTheEntireList)
                             showBottomSheet = false
-                            navigate(Screen.EntireList.route)
+                            navigate("${Screen.EntireList.route}/$page")
                         }) {
                         Icon(
                             Icons.AutoMirrored.Outlined.MenuBook,
@@ -489,7 +493,7 @@ fun CalendarSingleCore(
                             containerColor = MaterialTheme.colorScheme.secondary,
                         ),
                         onClick = {
-                            action(UserIntent.OnChangeSingleRecipe(true, recipe))
+                            action(UserIntent.OnChangeSingleRecipe(true, page))
                             showBottomSheet = false
                         }) {
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
@@ -567,7 +571,9 @@ fun CalendarSingleCoreMinimal(
                         }
                 ) {
                     Icon(
-                        modifier = Modifier.size(38.dp).padding(8.dp),
+                        modifier = Modifier
+                            .size(38.dp)
+                            .padding(8.dp),
                         imageVector = Icons.Outlined.Reorder,
                         contentDescription = "Reorder button",
                         tint = White90

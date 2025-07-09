@@ -40,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -133,72 +135,90 @@ fun MainCore(
                     }
                 }
 
+                TopBoxes(
+                    navController = navController,
+                    event = click
+                )
 
-                Row(modifier = Modifier) {
-                    ButtonDescriptionAndSubDescription(
-                        modifier    = Modifier
-                            .weight(1f)
-                            .padding(end = 6.dp),
-                        description = "Found a new recipe?",
-                        sub         = "Adding a new recipe to your virtual cook book!",
-                        image       = R.drawable.glass,
-                    ) {
-                        navController.navigate(Screen.Adding.route)
-                    }
+                AnimatedContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 12.dp)
+                        .weight(1f)
+                    ,
+                    targetState = state.state,
+                    label = "animated content"
+                ) { targetState ->
 
-                    ButtonDescriptionAndSubDescription(
-                        modifier    = Modifier
-                            .weight(1f)
-                            .padding(start = 6.dp),
-                        description = "Need a new week?",
-                        sub         = "Generate a new menu for your awesome week!",
-                        image       = R.drawable.calendar,
-                    ) {
-                        navController.navigate(Screen.Generate.route)
-                        click(UserIntent.OnGenerateNewWeek)
-                    }
-                }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        when(targetState) {
+                            MainStatus.DEFAULT -> {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(40.dp)
+                                )
+                            }
 
-                    AnimatedContent(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 12.dp)
-                            .weight(1f)
-                        ,
-                        targetState = state.state,
-                        label = "animated content"
-                    ) { targetState ->
+                            MainStatus.INITIALIZED -> {
+                                HorizontalWeek(
+                                    state = state,
+                                    navController = navController
+                                )
+                            }
 
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            when(targetState) {
-                                MainStatus.DEFAULT -> {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .size(40.dp)
-                                    )
-                                }
+                            MainStatus.REFRESHING -> {
 
-                                MainStatus.INITIALIZED -> {
-                                    HorizontalWeek(
-                                        state = state,
-                                        navController = navController
-                                    )
-                                }
+                            }
 
-                                MainStatus.REFRESHING -> {
-
-                                }
-
-                                MainStatus.EMPTY -> {
-                                    PlaceHolderEmptyWeek(
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                }
+                            MainStatus.EMPTY -> {
+                                PlaceHolderEmptyWeek(
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
                             }
                         }
                     }
+                }
             }
+        }
+    }
+}
+
+@Composable
+fun TopBoxes(
+    navController : NavController = rememberNavController(),
+    event : (UserIntent) -> Unit = {}
+) {
+    var maxHeight by remember { mutableStateOf(0) }
+
+    Row(modifier = Modifier) {
+        ButtonDescriptionAndSubDescription(
+            modifier    = Modifier
+                .weight(1f)
+                .padding(end = 6.dp)
+                .height(with(LocalDensity.current) { maxHeight.toDp() }),
+            description = "Found a new recipe?",
+            sub         = "Adding a new recipe to your virtual cook book!",
+            image       = R.drawable.glass,
+        ) {
+            navController.navigate(Screen.Adding.route)
+        }
+
+        ButtonDescriptionAndSubDescription(
+            modifier    = Modifier
+                .weight(1f)
+                .padding(start = 6.dp)
+                .onSizeChanged {
+                    if (it.height > maxHeight) {
+                        maxHeight = it.height
+                    }
+                },
+            description = "Need a new week?",
+            sub         = "Generate a new menu for your awesome week!",
+            image       = R.drawable.calendar,
+        ) {
+            navController.navigate(Screen.Generate.route)
+            event(UserIntent.OnGenerateNewWeek)
         }
     }
 }

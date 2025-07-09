@@ -117,7 +117,7 @@ sealed class UserIntent {
     data class OnUpdatingNewCode(val code : String) : UserIntent()
     data class OnChangeSingleRecipe(
         val autoGenerate : Boolean,
-        val mealToChange : Meal,
+        val indexToChange : Int,
         val mealToAdd : Meal = Meal()
     ) : UserIntent()
     data object OnAskingForTheEntireList : UserIntent()
@@ -250,7 +250,7 @@ class MainViewModel @Inject constructor (
             is UserIntent.OnChangeSingleRecipe -> {
                 changeSingleMeal(
                     userIntent.autoGenerate,
-                    userIntent.mealToChange,
+                    userIntent.indexToChange,
                     userIntent.mealToAdd)
             }
             is UserIntent.OnAskingForTheEntireList -> {
@@ -270,17 +270,14 @@ class MainViewModel @Inject constructor (
         updateDatabase(map)
     }
 
-    private fun changeSingleMeal(autoGenerate : Boolean, mealToChange : Meal, mealToAdd : Meal) {
-        val recipeDay   = _mainState.value.personalMeals.find { it.meal == mealToChange }
-        val index       = _mainState.value.personalMeals.indexOf(recipeDay)
-
-        if(index < 0) return
+    private fun changeSingleMeal(autoGenerate : Boolean, indexToChange : Int, mealToAdd : Meal) {
+        if(indexToChange < 0) return
 
         if(autoGenerate) {
-            generate(index)
+            generate(indexToChange)
         } else {
             val map = mutableMapOf<String, Any>()
-            map[index.toString()] = mealToAdd
+            map[indexToChange.toString()] = mealToAdd
             updateDatabase(map)
         }
     }

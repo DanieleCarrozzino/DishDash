@@ -17,6 +17,9 @@ import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -25,12 +28,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,12 +44,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
+import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.DarkColorScheme
 import com.carrozzino.dishdash.ui.theme.LightColorScheme
 import com.carrozzino.dishdash.ui.theme.Red50
 import com.carrozzino.dishdash.ui.viewModels.MainState
 import com.carrozzino.dishdash.ui.viewModels.MainViewModel
 import com.carrozzino.dishdash.ui.viewModels.UserIntent
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChangeHomeScreen (
@@ -68,24 +75,35 @@ fun ChangeHomeCore (
     state           : MainState     = MainState(),
     event           : (UserIntent) -> Unit = {}
 ) {
-    Box(
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) { /* Absorb clicks */ }
-    ) {
-        Box(modifier = modifier.fillMaxSize()) {
+            .background(MaterialTheme.colorScheme.background),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()) {
+
             TitleAndBackButton(
                 title = ""
             ) { navController.navigateUp() }
 
             // Insert a new code
             InsertNewCode(modifier = Modifier.align(Alignment.Center)) {
-                if(it.length > 4)
+                if(it.length > 4) {
                     event(UserIntent.OnUpdatingNewCode(it))
+                    navController.navigate(Screen.Home.route)
+
+                    scope.launch {
+                        snackbarHostState.showSnackbar("House changed!")
+                    }
+                }
             }
         }
     }
@@ -181,7 +199,10 @@ fun InsertNewCode(
                     .shadow(elevation = 5.dp, shape = RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
                     .background(MaterialTheme.colorScheme.surface)
-                    .clickable {send(code)}
+                    .clickable {
+                        send(code)
+                        code = ""
+                    }
             ) {
                 Icon(
                     modifier = Modifier.size(22.dp).align(Alignment.Center),

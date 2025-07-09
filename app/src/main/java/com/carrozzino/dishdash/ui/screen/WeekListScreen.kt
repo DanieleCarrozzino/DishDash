@@ -92,12 +92,7 @@ fun WeekListCore (
                     .padding(horizontal = 5.dp)
                     .shadow(elevation = elevation, shape = RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        ViewModelUtility.getColorFromType(
-                            recipe.meal.isVegetarian,
-                            isSystemInDarkTheme()
-                        )
-                    )
+                    .background(MaterialTheme.colorScheme.surface)
                 ) {
 
                     Row(modifier = Modifier) {

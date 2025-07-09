@@ -2,7 +2,7 @@ package com.carrozzino.dishdash.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,12 +65,16 @@ fun EntireListScreen (
     navController   : NavController,
     viewmodel       : MainViewModel,
     modifier        : Modifier,
+    position        : Int = 0,
 ) {
     val state = viewmodel.mainState.collectAsStateWithLifecycle().value
+    println("Daniele | $position")
     EntireListCore(
         modifier = modifier,
         navController = navController,
         state = state,
+        mealToChange = state.personalMeals[position].meal,
+        indexToChange = position,
         event = viewmodel::onReceive
     )
 }
@@ -80,6 +84,8 @@ fun EntireListCore (
     modifier        : Modifier      = Modifier,
     navController   : NavController = rememberNavController(),
     state           : MainState     = MainState(),
+    mealToChange    : Meal          = Meal(),
+    indexToChange   : Int           = 0,
     event           : (UserIntent) -> Unit = {}
 ) {
     var filter by remember { mutableStateOf("") }
@@ -114,7 +120,10 @@ fun EntireListCore (
                     recipe = recipe,
                     filter = filter
                 ) {
-                    event(UserIntent.OnChangeSingleRecipe(false, recipe.toMeal(), recipe.toMeal()))
+                    event(UserIntent.OnChangeSingleRecipe(
+                        autoGenerate    = false,
+                        indexToChange   = indexToChange,
+                        mealToAdd       = recipe.toMeal()))
                     filter = ""
                     navController.navigateUp()
                 }
@@ -156,12 +165,10 @@ fun SingleRecipe(
         .padding(horizontal = 5.dp)
         .shadow(elevation = 2.dp, shape = RoundedCornerShape(12.dp))
         .clip(RoundedCornerShape(12.dp))
-        .background(
-            ViewModelUtility.getColorFromType(
-                recipe.isVegetarian,
-                isSystemInDarkTheme()
-            )
-        )
+        .background(MaterialTheme.colorScheme.surface)
+        .clickable {
+            click()
+        }
     ) {
 
         Row(modifier = Modifier) {

@@ -48,7 +48,7 @@ class FirebaseFirestoreRepository @Inject constructor(
         val map = mutableMapOf<String, Any>()
         initSizes()
 
-        if(sizeMains == 0L || sizeSides == 0L) map
+        if(sizeMains == 0L || sizeSides == 0L) return@withContext map
 
         var randomMainIndex = (0..<sizeMains).shuffled().take(1)[0].toInt()
         while(idsToAvoid.contains(randomMainIndex))
@@ -56,7 +56,7 @@ class FirebaseFirestoreRepository @Inject constructor(
         val randomSideIndex = (0..<sizeSides).shuffled().take(1)[0].toInt()
 
         map[indexToUpdate.toString()] = getRecipe(randomMainIndex.toLong(), randomSideIndex.toLong())
-        map
+        return@withContext map
     }
 
     suspend fun generate(daysSize : Int) : Map<String, Any> = withContext(Dispatchers.IO) {
@@ -64,7 +64,7 @@ class FirebaseFirestoreRepository @Inject constructor(
         val map = mutableMapOf<String, Any>()
         initSizes()
 
-        if(sizeMains == 0L || sizeSides == 0L) map
+        if(sizeMains == 0L || sizeSides == 0L) return@withContext map
 
         val randomSides = (0..<sizeSides).shuffled().take(minOf(sizeSides, daysSize.toLong()).toInt())
         val randomMain = (0..<sizeMains).shuffled().take(minOf(sizeMains, daysSize.toLong()).toInt())
@@ -72,7 +72,7 @@ class FirebaseFirestoreRepository @Inject constructor(
         for(index in 0..<minOf(randomSides.size, randomMain.size)) {
             map[index.toString()] = getRecipe(randomMain[index], randomSides[minOf(index, (randomSides.size - 1))])
         }
-        map
+        return@withContext map
     }
 
     suspend fun getRecipe(indexMain : Long, indexSide : Long) : Map<String, Any> {

@@ -150,12 +150,14 @@ fun SetupNavGraph(
         }
 
         composable(
-            route = Screen.EntireList.route
-        ) {
+            route = "${Screen.EntireList.route}/{position}",
+            arguments = listOf(navArgument("position"){ type = NavType.IntType })
+        ) { backStackEntry ->
             EntireListScreen(
                 modifier = modifier,
                 navController = navController,
-                viewmodel = main
+                viewmodel = main,
+                position = backStackEntry.arguments?.getInt("position") ?: 0
             )
         }
     }
