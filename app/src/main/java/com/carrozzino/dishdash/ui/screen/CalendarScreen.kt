@@ -1,6 +1,5 @@
 package com.carrozzino.dishdash.ui.screen
 
-import android.R.attr.action
 import android.os.Build
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -32,6 +31,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.outlined.Autorenew
+import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -70,7 +70,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.carrozzino.dishdash.R
-import com.carrozzino.dishdash.data.database.models.RecipeModel
+import com.carrozzino.dishdash.data.database.models.Meal
 import com.carrozzino.dishdash.ui.navigation.Screen
 import com.carrozzino.dishdash.ui.theme.White90
 import com.carrozzino.dishdash.ui.utility.ViewModelUtility
@@ -105,9 +105,9 @@ fun CalendarCore(
     val generationState = viewModel.generatingState.collectAsState().value
 
     val pagerState = rememberPagerState(
-        pageCount = { state.recipes.size },
+        pageCount = { state.personalMeals.size },
         initialPageOffsetFraction = 0f,
-        initialPage = if(position < state.recipes.size) position else 0)
+        initialPage = if(position < state.personalMeals.size) position else 0)
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPageOffsetFraction }.collect { page ->
@@ -134,16 +134,16 @@ fun CalendarCore(
         ) { page ->
             println("Page loaded $page")
 
-            if(state.recipes.size < page) return@HorizontalPager
+            if(state.personalMeals.size < page) return@HorizontalPager
 
             CalendarSingleCoreFullScreen (
                 modifier    = modifier,
-                recipe      = state.recipes[page].recipeModel,
-                date        = state.recipes[page].date,
+                recipe      = state.personalMeals[page].meal,
+                date        = state.personalMeals[page].date,
                 today       = state.actualDate,
                 action      = viewModel::onReceive
-            ) {
-                navController.navigate(Screen.Home.route)
+            ) { route ->
+                navController.navigate(route)
             }
         }
 
@@ -222,17 +222,19 @@ fun FoodAvatar(
 @Composable
 fun BottomButtons(
     modifier    : Modifier = Modifier,
-    recipe      : RecipeModel = RecipeModel(),
+    recipe      : Meal = Meal(),
     action      : (UserIntent?) -> Unit = {}
 ) {
     Row(modifier = modifier) {
         Button(
-            modifier = Modifier.padding(
-                start = 18.dp,
-                end = 9.dp,
-                top = 10.dp,
-                bottom = 10.dp
-            ).weight(1f),
+            modifier = Modifier
+                .padding(
+                    start = 18.dp,
+                    end = 9.dp,
+                    top = 10.dp,
+                    bottom = 10.dp
+                )
+                .weight(1f),
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             onClick = {
                 action(null)
@@ -277,17 +279,21 @@ fun BottomButtons(
 @Composable
 fun CalendarSingleCoreFullScreen(
     modifier : Modifier = Modifier,
-    recipe : RecipeModel = RecipeModel(),
+    recipe : Meal = Meal(),
     date : String = "",
     today : String = "",
     action : (UserIntent) -> Unit = {},
-    navigate : () -> Unit = {}
+    navigate : (String) -> Unit = {}
 ) {
     val isToday = date == today
 
-    Box(modifier = Modifier.fillMaxSize().background(
-        ViewModelUtility.getColorFromId(recipe.idImage, isSystemInDarkTheme()).copy(
-            alpha = if(isToday) 1f else 0.5f))) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(
+            ViewModelUtility.getColorFromType(recipe.isVegetarian, isSystemInDarkTheme()).copy(
+                alpha = if (isToday) 1f else 0.5f
+            )
+        )) {
         CalendarSingleCore(
             modifier    = modifier,
             recipe      = recipe,
@@ -303,11 +309,11 @@ fun CalendarSingleCoreFullScreen(
 @Composable
 fun CalendarSingleCore(
     modifier : Modifier = Modifier,
-    recipe : RecipeModel = RecipeModel(),
+    recipe : Meal = Meal(),
     date : String = "",
     today : String = "",
     action      : (UserIntent) -> Unit = {},
-    navigate    : () -> Unit = {}
+    navigate    : (String) -> Unit = {}
 ) {
 
     val sheetState = rememberModalBottomSheetState()
@@ -322,7 +328,9 @@ fun CalendarSingleCore(
             Row {
                 if(isToday)
                     Image(
-                        modifier = Modifier.size(24.dp).padding(end = 5.dp),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 5.dp),
                         painter = painterResource(R.drawable.star),
                         contentDescription = ""
                     )
@@ -349,7 +357,7 @@ fun CalendarSingleCore(
             .align(Alignment.TopEnd)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary)
-            .clickable{ navigate() }) {
+            .clickable { navigate(Screen.Home.route) }) {
             Icon(
                 modifier = Modifier.padding(10.dp),
                 imageVector = Icons.Rounded.Clear,
@@ -359,7 +367,9 @@ fun CalendarSingleCore(
         }
 
         FoodAvatar(
-            modifier = Modifier.align(Alignment.Center).alpha(if(isToday) 1f else 0.6f),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .alpha(if (isToday) 1f else 0.6f),
             if(recipe.idImage < ViewModelUtility.listImages.size)
                 ViewModelUtility.listImages[recipe.idImage] else R.drawable.star
         )
@@ -422,14 +432,18 @@ fun CalendarSingleCore(
                 sheetState = sheetState
             ) {
                 Text(
-                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 24.dp),
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(horizontal = 24.dp),
                     text = "Would you like to change this week's recipe?",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(
-                    modifier = Modifier.align(Alignment.Start).padding(horizontal = 24.dp),
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(horizontal = 24.dp),
                     text = "You can either select a recipe yourself from the full list or let us pick a random one for you.",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground
@@ -437,16 +451,19 @@ fun CalendarSingleCore(
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
-                        modifier = Modifier.padding(
-                            start = 24.dp,
-                            end = 9.dp,
-                            top = 10.dp,
-                            bottom = 14.dp
-                        ).weight(1f),
+                        modifier = Modifier
+                            .padding(
+                                start = 24.dp,
+                                end = 9.dp,
+                                top = 10.dp,
+                                bottom = 14.dp
+                            )
+                            .weight(1f),
                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                         onClick = {
-                            action(UserIntent.OnChangeSingleRecipe(false, recipe))
+                            action(UserIntent.OnAskingForTheEntireList)
                             showBottomSheet = false
+                            navigate(Screen.EntireList.route)
                         }) {
                         Icon(
                             Icons.AutoMirrored.Outlined.MenuBook,
@@ -459,12 +476,14 @@ fun CalendarSingleCore(
                     }
 
                     Button(
-                        modifier = Modifier.padding(
-                            start = 9.dp,
-                            end = 24.dp,
-                            top = 10.dp,
-                            bottom = 14.dp
-                        ).weight(1f),
+                        modifier = Modifier
+                            .padding(
+                                start = 9.dp,
+                                end = 24.dp,
+                                top = 10.dp,
+                                bottom = 14.dp
+                            )
+                            .weight(1f),
                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
@@ -491,22 +510,25 @@ fun CalendarSingleCore(
 
 @Composable
 fun CalendarSingleCoreMinimal(
-    modifier : Modifier = Modifier,
-    recipe : RecipeModel = RecipeModel(),
-    date : String = "",
-    today : String = "",
-    click : () -> Unit = {}
+    modifier    : Modifier = Modifier,
+    recipe      : Meal = Meal(),
+    date        : String = "",
+    today       : String = "",
+    page        : Int = 0,
+    click       : (route : String) -> Unit = {}
 ) {
     val isToday = date == today
 
-    Box(modifier = modifier.fillMaxSize().clickable {
-        click()
-    }) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .clickable {
+            click("${Screen.Calendar.route}/$page")
+        }) {
 
         FoodAvatar(
             modifier = Modifier
                 .align(Alignment.Center)
-                .alpha(if(isToday) 1f else 0.6f),
+                .alpha(if (isToday) 1f else 0.6f),
             image = if(recipe.idImage < ViewModelUtility.listImages.size)
                 ViewModelUtility.listImages[recipe.idImage] else R.drawable.star,
             small = true
@@ -517,17 +539,40 @@ fun CalendarSingleCoreMinimal(
             Row {
                 if(isToday)
                     Image(
-                        modifier = Modifier.size(24.dp).padding(end = 5.dp),
+                        modifier = Modifier
+                            .padding(bottom = 5.dp)
+                            .align(Alignment.CenterVertically)
+                            .size(24.dp)
+                            .padding(end = 5.dp),
                         painter = painterResource(R.drawable.star),
                         contentDescription = ""
                     )
 
                 Text(
-                    modifier = Modifier.align(Alignment.CenterVertically),
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .weight(1f),
                     text = if(isToday) "Recipe of Today" else date,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    overflow = TextOverflow.Ellipsis
                 )
+
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable {
+                            click(Screen.WeekList.route)
+                        }
+                ) {
+                    Icon(
+                        modifier = Modifier.size(38.dp).padding(8.dp),
+                        imageVector = Icons.Outlined.Reorder,
+                        contentDescription = "Reorder button",
+                        tint = White90
+                    )
+                }
             }
 
             Text(
@@ -596,7 +641,7 @@ fun NewActionButton(
         .clip(CircleShape)
         .background(background)
         .size(70.dp)
-        .clickable{
+        .clickable {
             click()
         }
     ) {
@@ -634,7 +679,7 @@ fun AddNewRecipeButtonPreview() {
 @Preview(showBackground = true)
 @Composable
 fun CalendarPreview() {
-    CalendarSingleCore(recipe = RecipeModel(
+    CalendarSingleCore(recipe = Meal(
         main = "Daniele",
         side = "Carrozzino"
     ))

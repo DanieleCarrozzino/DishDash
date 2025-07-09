@@ -300,20 +300,32 @@ fun ListScreenPreviewDark() {
 @Composable
 fun TitleAndBackButton(
     modifier    : Modifier = Modifier,
-    title       : String,
+    title       : String = "",
+    subtitle    : String = "",
     close       : () -> Unit = {}
 ) {
     Row(modifier = modifier
         .padding(bottom = 22.dp, top = 10.dp)) {
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically)
-                .padding(horizontal = 15.dp),
-            text        = title,
-            color       = MaterialTheme.colorScheme.onBackground,
-            style       = MaterialTheme.typography.titleLarge,
-        )
+
+        Column(modifier = Modifier
+            .weight(1f)
+            .align(Alignment.CenterVertically)
+            .padding(horizontal = 15.dp)) {
+
+            Text(
+                text        = title,
+                color       = MaterialTheme.colorScheme.onBackground,
+                style       = MaterialTheme.typography.titleLarge,
+            )
+
+            Text(
+                text        = subtitle,
+                color       = MaterialTheme.colorScheme.onBackground,
+                style       = MaterialTheme.typography.titleSmall,
+            )
+        }
+
+
 
         Surface(
             modifier = Modifier

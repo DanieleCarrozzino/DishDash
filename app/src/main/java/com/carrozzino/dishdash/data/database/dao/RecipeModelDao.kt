@@ -4,22 +4,22 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.carrozzino.dishdash.data.database.models.RecipeModel
+import com.carrozzino.dishdash.data.database.models.Meal
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecipeModelDao {
 
-    @Query("SELECT * FROM `RecipeModel`")
-    fun getAll() : Flow<List<RecipeModel>>
+    @Query("SELECT * FROM Meal")
+    fun getAll() : Flow<List<Meal>>
 
-    @Query("SELECT * FROM `RecipeModel`")
-    fun getRecipes() : List<RecipeModel>
+    @Query("SELECT * FROM Meal")
+    fun getRecipes() : List<Meal>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(group : RecipeModel)
+    fun insert(group : Meal)
 
-    @Query("DELETE FROM `RecipeModel`")
+    @Query("DELETE FROM Meal")
     fun deleteAll()
 
 //    @Query("DELETE FROM `RecipeModel` WHERE id == :id")

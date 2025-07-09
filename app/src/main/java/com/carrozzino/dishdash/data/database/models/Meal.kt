@@ -6,11 +6,12 @@ import androidx.room.PrimaryKey
 
 @Entity
 @Keep
-data class RecipeModel (
+data class Meal (
     @PrimaryKey() val id: Int = 0,
     val main : String = "",
     val mainIngredients : String = "",
     val link : String = "",
+    val isVegetarian : Boolean = false,
     val side : String = "",
     val sideIngredients : String = "",
     val mainRecipe : String = "",
@@ -21,7 +22,7 @@ data class RecipeModel (
 )
 
 @Keep
-data class RecipeDayModel (
-    val recipeModel: RecipeModel,
-    val date : String
+data class MealPerDate (
+    val meal    : Meal,
+    val date    : String
 )

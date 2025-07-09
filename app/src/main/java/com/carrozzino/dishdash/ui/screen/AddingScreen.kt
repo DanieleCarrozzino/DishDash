@@ -376,11 +376,12 @@ fun AddingCore(
     var ingredients by remember { mutableStateOf(state.recipe.ingredients) }
     var linkRecipe by remember { mutableStateOf(state.recipe.link) }
     var isSide by remember { mutableStateOf(state.recipe.isSide) }
+    var isVegetarian by remember { mutableStateOf(state.recipe.isVegetarian) }
     var needASide by remember { mutableStateOf(state.recipe.needASide) }
     var idImage by remember { mutableIntStateOf(state.recipe.idImage) }
     val seasons = remember { mutableStateListOf<Int>().apply { addAll(state.recipe.seasons) } }
 
-    var urlImage by remember { mutableStateOf(state.recipe.url) }
+    var urlImage by remember { mutableStateOf(state.recipe.urlImage) }
 
     var uri by remember { mutableStateOf<Uri?>(state.uri) }
     var bitmap by remember { mutableStateOf<ImageBitmap?>(state.recipe.image) }
@@ -511,7 +512,7 @@ fun AddingCore(
 
             TitleAndTextField(
                 title = "Url of the main image",
-                text = state.recipe.url
+                text = state.recipe.urlImage
             ) { urlImage = it }
             Spacer(modifier = Modifier.height(5.dp))
             TitleAndTextField(
@@ -532,6 +533,26 @@ fun AddingCore(
             Spacer(modifier = Modifier.height(5.dp))
 
             Spacer(modifier = Modifier.height(5.dp))
+
+            Row(modifier = Modifier.padding(horizontal = 18.dp)) {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterVertically).weight(1f),
+                    text = "Is this recipe vegetarian?",
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+                Switch(
+                    modifier = Modifier.padding(start = 6.dp),
+                    checked = isVegetarian,
+                    colors = SwitchDefaults.colors(
+                        uncheckedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.primary
+                    ),
+                    onCheckedChange = {
+                        isVegetarian = it
+                    }
+                )
+            }
 
             Row(modifier = Modifier.padding(horizontal = 18.dp)) {
                 Text(
@@ -643,7 +664,7 @@ fun AddingCore(
                             link = linkRecipe,
                             isSide = isSide,
                             seasons = seasons,
-                            url = urlImage,
+                            urlImage = urlImage,
                             needASide = needASide,
                             idImage = idImage
                         )

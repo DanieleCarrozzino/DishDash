@@ -240,8 +240,8 @@ fun HorizontalWeek(
     }
 
     val pagerState = rememberPagerState(
-        pageCount = { state.recipes.size },
-        initialPage = 0.coerceAtLeast(state.recipes.indexOfFirst { it.date == state.actualDate })
+        pageCount = { state.personalMeals.size },
+        initialPage = 0.coerceAtLeast(state.personalMeals.indexOfFirst { it.date == state.actualDate })
     )
 
     val scope = rememberCoroutineScope()
@@ -286,29 +286,30 @@ fun HorizontalWeek(
                     }
                     .clip(RoundedCornerShape(12.dp))
                     .background(
-                        ViewModelUtility.getColorFromId(
-                            state.recipes[page].recipeModel.idImage,
+                        ViewModelUtility.getColorFromType(
+                            state.personalMeals[page].meal.isVegetarian,
                             isSystemInDarkTheme()
-                        ).copy(alpha = 0.6f)
+                        )
                     ),
-                recipe = state.recipes[page].recipeModel,
-                date = state.recipes[page].date,
-                today = state.actualDate
-            ) {
-                navController.navigate("${Screen.Calendar.route}/$page")
+                recipe = state.personalMeals[page].meal,
+                date = state.personalMeals[page].date,
+                today = state.actualDate,
+                page = page,
+            ) { route ->
+                navController.navigate(route)
             }
         }
 
         Row(modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp)) {
-            repeat(state.recipes.size) { index ->
+            repeat(state.personalMeals.size) { index ->
                 SingleDaySelector(
                     modifier = Modifier.weight(1f),
-                    text = state.recipes[index].date.substring(0, 2),
+                    text = state.personalMeals[index].date.substring(0, 2),
                     selected = index == pagerState.currentPage,
-                    actualDate = state.recipes[index].date == state.actualDate,
-                    holiday = state.recipes.size == 7 && index >= state.recipes.size - 2
+                    actualDate = state.personalMeals[index].date == state.actualDate,
+                    holiday = state.personalMeals.size == 7 && index >= state.personalMeals.size - 2
                 ) {
                     scope.launch {
                         pagerState.animateScrollToPage(index)

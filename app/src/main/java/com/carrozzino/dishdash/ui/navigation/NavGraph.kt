@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.carrozzino.dishdash.ui.screen.AddingScreen
 import com.carrozzino.dishdash.ui.screen.CalendarScreen
+import com.carrozzino.dishdash.ui.screen.EntireListScreen
 import com.carrozzino.dishdash.ui.screen.settings.ChangeHomeScreen
 import com.carrozzino.dishdash.ui.screen.GenerationScreen
 import com.carrozzino.dishdash.ui.screen.LoginScreen
@@ -32,6 +33,7 @@ sealed class Screen(val route : String) {
     data object ShareCode : Screen("ShareCode")
     data object About : Screen("About")
     data object WeekList : Screen("WeekList")
+    data object EntireList : Screen("EntireList")
 }
 
 @Composable
@@ -141,6 +143,16 @@ fun SetupNavGraph(
             route = Screen.WeekList.route
         ) {
             WeekListScreen(
+                modifier = modifier,
+                navController = navController,
+                viewmodel = main
+            )
+        }
+
+        composable(
+            route = Screen.EntireList.route
+        ) {
+            EntireListScreen(
                 modifier = modifier,
                 navController = navController,
                 viewmodel = main

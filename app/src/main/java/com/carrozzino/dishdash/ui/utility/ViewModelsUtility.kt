@@ -60,9 +60,26 @@ class ViewModelUtility() {
             return if(dark) listColorsDark[index] else listColors[index]
         }
 
+        fun getColorFromType(isVegetarian : Boolean, dark : Boolean = false) : Color {
+            return if(dark && isVegetarian) BackDark4 else if(dark) BackDark5 else if(isVegetarian) Back4 else Back5
+        }
+
         fun encodeToBase64(input: String): String {
             val bytes = input.toByteArray(Charsets.UTF_8)
             return Base64.encodeToString(bytes, Base64.NO_WRAP)
+        }
+
+        fun getDay(index : Int) : String {
+            return when(index) {
+                0 -> "Monday"
+                1 -> "Tuesday"
+                2 -> "Wednesday"
+                3 -> "Thursday"
+                4 -> "Friday"
+                5 -> "Saturday"
+                6 -> "Sunday"
+                else -> "default"
+            }
         }
     }
 }

@@ -4,8 +4,8 @@ import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.carrozzino.dishdash.data.database.models.RecipeDayModel
-import com.carrozzino.dishdash.data.database.models.RecipeModel
+import com.carrozzino.dishdash.data.database.models.MealPerDate
+import com.carrozzino.dishdash.data.database.models.Meal
 import com.carrozzino.dishdash.data.internal.Preferences
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseRealtimeDatabaseInterface
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseStorageInterface
@@ -35,7 +35,8 @@ enum class MainStatus {
 }
 
 data class MainState (
-    val recipes         : List<RecipeDayModel>  = listOf<RecipeDayModel>(),
+    val personalMeals   : List<MealPerDate>     = listOf<MealPerDate>(),
+    val totalRecipes    : List<Recipe>          = listOf<Recipe>(),
     val actualDate      : String                = "",
     val state           : MainStatus            = MainStatus.DEFAULT,
     val personalCode    : String                = ""
@@ -54,16 +55,58 @@ data class GeneratingState (
 )
 
 data class Recipe(
-    val url             : String = "",
+    val urlImage        : String = "",
     val title           : String = "",
     val ingredients     : String = "",
     val link            : String = "",
     val image           : ImageBitmap? = null,
     val isSide          : Boolean = false,
+    val isVegetarian    : Boolean = false,
     val needASide       : Boolean = false,
     val idImage         : Int = 0,
-    val seasons         : List<Int> = listOf<Int>()
-)
+    val seasons         : List<Int> = listOf<Int>(),
+    val serverId        : Int = -1
+) {
+    fun toMap() : Map<String, Any> {
+        return mapOf(
+            "urlImage" to urlImage,
+            "title" to title,
+            "ingredients" to ingredients,
+            "link" to link,
+            "isSide" to isSide,
+            "isVegetarian" to isVegetarian,
+            "needASide" to needASide,
+            "idImage" to idImage,
+            "seasons" to seasons,
+        )
+    }
+
+    fun toHashMap() : HashMap<String, Any> {
+        return hashMapOf(
+            "urlImage" to urlImage,
+            "title" to title,
+            "ingredients" to ingredients,
+            "link" to link,
+            "isSide" to isSide,
+            "isVegetarian" to isVegetarian,
+            "needASide" to needASide,
+            "idImage" to idImage,
+            "seasons" to seasons,
+        )
+    }
+
+    fun toMeal() : Meal {
+        return Meal(
+            main            = title,
+            mainIngredients = ingredients,
+            urlImage        = urlImage,
+            idImage         = idImage,
+            link            = link,
+            isVegetarian    = isVegetarian,
+            serverId        = serverId
+        )
+    }
+}
 
 sealed class UserIntent {
     data class OnImageSelected(val uri : Uri, val image : ImageBitmap) : UserIntent()
@@ -72,13 +115,19 @@ sealed class UserIntent {
     data object OnGenerateNewWeek : UserIntent()
     data class OnOpenLinkRecipe(val link : String) : UserIntent()
     data class OnUpdatingNewCode(val code : String) : UserIntent()
-    data class OnChangeSingleRecipe(val autoGenerate : Boolean, val recipe : RecipeModel) : UserIntent()
+    data class OnChangeSingleRecipe(
+        val autoGenerate : Boolean,
+        val mealToChange : Meal,
+        val mealToAdd : Meal = Meal()
+    ) : UserIntent()
+    data object OnAskingForTheEntireList : UserIntent()
+    data class OnReorderRecipesList(val list : List<MealPerDate>) : UserIntent()
 }
 
 @HiltViewModel
 class MainViewModel @Inject constructor (
-    val database        : FirebaseRealtimeDatabaseInterface,
-    val firestoreRepository: FirebaseFirestoreRepository,
+    val realTimeDatabase : FirebaseRealtimeDatabaseInterface,
+    val firestoreRepository : FirebaseFirestoreRepository,
     val storage         : FirebaseStorageInterface,
     val localDatabase   : RecipeModelRepository,
     val preferences     : Preferences
@@ -119,19 +168,29 @@ class MainViewModel @Inject constructor (
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            localDatabase.all().collect { recipes ->
-                val dates : MutableList<RecipeDayModel> = mutableListOf()
-                recipes.forEach { recipe ->
-                    dates.add( RecipeDayModel(
-                        date = if(dates.size < days.size) days[dates.size] else "",
-                        recipeModel = recipe ))
+            launch {
+                localDatabase.all().collect { recipes ->
+                    val dates: MutableList<MealPerDate> = mutableListOf()
+                    recipes.forEach { recipe ->
+                        dates.add(
+                            MealPerDate(
+                                date = if (dates.size < days.size) days[dates.size] else "",
+                                meal = recipe
+                            )
+                        )
+                    }
+                    _mainState.update {
+                        it.copy(
+                            personalMeals = dates,
+                            actualDate = ViewModelUtility.getActualDate(),
+                            state = if (dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED,
+                        )
+                    }
                 }
-                _mainState.update {
-                    it.copy(
-                        recipes     = dates,
-                        actualDate  = ViewModelUtility.getActualDate(),
-                        state       = if(dates.isEmpty()) MainStatus.EMPTY else MainStatus.INITIALIZED,
-                    )
+            }
+            launch {
+                firestoreRepository.state.collect { state ->
+                    _mainState.update { it.copy(totalRecipes = state.listRecipes) }
                 }
             }
         }
@@ -143,7 +202,7 @@ class MainViewModel @Inject constructor (
         _mainState.update { it.copy( personalCode = code) }
 
         // Get the recipes from the real time database
-        databaseReference = database.getValues(RECIPE_MODULE, listOf(code))
+        databaseReference = realTimeDatabase.getValues(RECIPE_MODULE, listOf(code))
         databaseReference?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.children.count() < 5) {
@@ -153,11 +212,11 @@ class MainViewModel @Inject constructor (
 
                 var count = 0
                 for (child in dataSnapshot.children) {
-                    var recipe = child.getValue(RecipeModel::class.java)
+                    var recipe = child.getValue(Meal::class.java)
                     if(recipe?.link?.isEmpty() == true) {
                         recipe = recipe.copy(
                             link = "https://www.google.com/search?q=" + Uri.encode(recipe.main))}
-                    localDatabase.insert(recipe?.copy(id = count) ?: RecipeModel())
+                    localDatabase.insert(recipe?.copy(id = count) ?: Meal())
                     count ++
                 }
             }
@@ -189,21 +248,40 @@ class MainViewModel @Inject constructor (
                 updatingWithANewCode(userIntent.code)
             }
             is UserIntent.OnChangeSingleRecipe -> {
-                changeSingleRecipe(userIntent.autoGenerate, userIntent.recipe)
+                changeSingleMeal(
+                    userIntent.autoGenerate,
+                    userIntent.mealToChange,
+                    userIntent.mealToAdd)
+            }
+            is UserIntent.OnAskingForTheEntireList -> {
+                firestoreRepository.getRecipes(20, 0)
+            }
+            is UserIntent.OnReorderRecipesList -> {
+                changeOrderMainList(userIntent.list)
             }
         }
     }
 
-    private fun changeSingleRecipe(autoGenerate : Boolean, recipe : RecipeModel) {
-        // use the firestore to update and generate a new recipe
-        if(autoGenerate) {
-            val recipeDay   = _mainState.value.recipes.find { it.recipeModel == recipe }
-            val index       = _mainState.value.recipes.indexOf(recipeDay)
+    private fun changeOrderMainList(list : List<MealPerDate>) {
+        val map = mutableMapOf<String, Any>()
+        list.forEachIndexed { index, model ->
+            map[index.toString()] = model.meal
+        }
+        updateDatabase(map)
+    }
 
+    private fun changeSingleMeal(autoGenerate : Boolean, mealToChange : Meal, mealToAdd : Meal) {
+        val recipeDay   = _mainState.value.personalMeals.find { it.meal == mealToChange }
+        val index       = _mainState.value.personalMeals.indexOf(recipeDay)
+
+        if(index < 0) return
+
+        if(autoGenerate) {
             generate(index)
         } else {
-            // TODO open a different screen with the entire list of the recipes
-            // need to call the firestoreRepository.loadAllRecipes()
+            val map = mutableMapOf<String, Any>()
+            map[index.toString()] = mealToAdd
+            updateDatabase(map)
         }
     }
 
@@ -272,7 +350,7 @@ class MainViewModel @Inject constructor (
                 firestoreRepository.generate(days.size)
             } else {
                 firestoreRepository.generateJustOne(
-                    idsToAvoid = _mainState.value.recipes.map { it.recipeModel.serverId },
+                    idsToAvoid = _mainState.value.personalMeals.map { it.meal.serverId },
                     indexToUpdate = indexToUpdate
                 )
             }
@@ -287,16 +365,20 @@ class MainViewModel @Inject constructor (
             }
 
             delay(500)
-            database.putValues(
-                module      = RECIPE_MODULE,
-                children    = listOf(code),
-                nodes       = map
-            ).addOnCompleteListener { result ->
-                _generatingState.update {
-                    it.copy(
-                        generating = false,
-                        error = !result.isSuccessful)
-                }
+            updateDatabase(map)
+        }
+    }
+
+    private fun updateDatabase(map : Map<String, Any>) {
+        realTimeDatabase.putValues(
+            module      = RECIPE_MODULE,
+            children    = listOf(code),
+            nodes       = map
+        ).addOnCompleteListener { result ->
+            _generatingState.update {
+                it.copy(
+                    generating = false,
+                    error = !result.isSuccessful)
             }
         }
     }
