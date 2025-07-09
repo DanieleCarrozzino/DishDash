@@ -1,7 +1,6 @@
 package com.carrozzino.dishdash.data.repository
 
 import com.carrozzino.dishdash.data.network.storage.interfaces.FirebaseFirestoreDatabaseInterface
-import com.carrozzino.dishdash.ui.viewModels.MainState
 import com.carrozzino.dishdash.ui.viewModels.Recipe
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
@@ -32,17 +31,36 @@ class FirebaseFirestoreRepository @Inject constructor(
     private val _state = MutableStateFlow(FirestoreRepositoryState())
     val state : StateFlow<FirestoreRepositoryState> = _state.asStateFlow()
 
+    /**
+     * Get or keep
+     *
+     * if the current value is been already initialized
+     * I decided to skip it also if someone could have added some
+     * recipes in the meantime
+     * */
     private suspend fun getOrKeep(current: Long, loader: (callback: (Long) -> Unit) -> Unit): Long {
         return if (current > 0) current else suspendCoroutine { cont ->
             loader { result -> cont.resume(result) }
         }
     }
 
+    /**
+     * Init sizes
+     *
+     * init the size of the list of the recipes, mains and sides
+     * */
     private suspend fun initSizes() {
         sizeSides = getOrKeep(sizeSides) { firestore.size("total_side_recipes", it) }
         sizeMains = getOrKeep(sizeMains) { firestore.size("total_recipes", it) }
     }
 
+    /**
+     * Generate just one
+     *
+     * @param idsToAvoid ids that are already inside the main list
+     * @param indexToUpdate index of the actual recipe to update 0..6 as the days in a week
+     * Generate just one recipe in a specific position defined by indexToUpdate
+     * */
     suspend fun generateJustOne(idsToAvoid : List<Int>, indexToUpdate : Int) : Map<String, Any> = withContext(Dispatchers.IO) {
 
         val map = mutableMapOf<String, Any>()
@@ -59,6 +77,12 @@ class FirebaseFirestoreRepository @Inject constructor(
         return@withContext map
     }
 
+    /**
+     * Generate
+     *
+     * @param daysSize num of days to generate
+     * Generate the entire week
+     * */
     suspend fun generate(daysSize : Int) : Map<String, Any> = withContext(Dispatchers.IO) {
 
         val map = mutableMapOf<String, Any>()
@@ -75,6 +99,13 @@ class FirebaseFirestoreRepository @Inject constructor(
         return@withContext map
     }
 
+    /**
+     * Get Recipe
+     *
+     * @param indexMain index of the main plate
+     * @param indexSide index of the side plate if requested by the main
+     * get single recipe from indexes
+     * */
     suspend fun getRecipe(indexMain : Long, indexSide : Long) : Map<String, Any> {
         if(!mapMains.containsKey(indexMain.toInt())) {
             val document = suspendCoroutine<DocumentSnapshot> { block ->
@@ -112,6 +143,14 @@ class FirebaseFirestoreRepository @Inject constructor(
         return hash
     }
 
+    /**
+     * Get recipes
+     *
+     * @param limit limit number rof recipes
+     * @param offset starting offset
+     * @param where starting string to filter the list of recipes
+     * get full list of recipes with limit, offset and where
+     * */
     fun getRecipes(limit : Long, offset : Int, where : String = "") {
         if(where.isEmpty() && offset <= 0 && state.value.listRecipes.isNotEmpty()) {
             return
@@ -138,6 +177,12 @@ class FirebaseFirestoreRepository @Inject constructor(
         }
     }
 
+    /**
+     * Add
+     *
+     * @param recipe recipe to add
+     * add a single recipe
+     * */
     suspend fun add(recipe : Recipe) : Task<Void?>? = withContext(Dispatchers.IO) {
 
         if(recipe.isSide)

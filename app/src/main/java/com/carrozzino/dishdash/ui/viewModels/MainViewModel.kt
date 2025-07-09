@@ -1,6 +1,7 @@
 package com.carrozzino.dishdash.ui.viewModels
 
 import android.net.Uri
+import androidx.annotation.Keep
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -54,6 +55,7 @@ data class GeneratingState (
     val error : Boolean = false,
 )
 
+@Keep
 data class Recipe(
     val urlImage        : String = "",
     val title           : String = "",
