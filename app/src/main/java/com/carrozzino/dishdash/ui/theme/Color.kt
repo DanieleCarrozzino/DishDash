@@ -41,11 +41,17 @@ val Back3 = Color(0xFFFFFBDD)
 val Back4 = Color(0xFFE8FFE8)
 val Back5 = Color(0xFFE2FFFC)
 
+val OnBack4 = Color(0xFF609460)
+val OnBack5 = Color(0xFF40A89E)
+
 val BackDark1 = Color(0xFF1D1B21)
 val BackDark2 = Color(0xFF1A1515)
 val BackDark3 = Color(0xFF171613)
 val BackDark4 = Color(0xFF151815)
 val BackDark5 = Color(0xFF1A191C)
+
+val OnBackDark4 = Color(0xFF272A27)
+val OnBackDark5 = Color(0xFF2C2B2F)
 
 val settings1 = Color(0xFF51D670)
 val settings2 = Color(0xFFCE78E0)

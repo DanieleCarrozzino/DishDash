@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,6 +87,7 @@ fun AboutCore (
                     text        = "Designed and Produced by",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
+                    textAlign   = TextAlign.Center
                 )
 
                 Text(
@@ -95,6 +97,7 @@ fun AboutCore (
                     text        = "Ilaria Falbo and Daniele Carrozzino",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleLarge,
+                    textAlign   = TextAlign.Center
                 )
 
                 Text(
@@ -104,6 +107,7 @@ fun AboutCore (
                     text        = "aka Lilìn and Carrozzén",
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
+                    textAlign   = TextAlign.Center
                 )
 
                 Text(
@@ -114,6 +118,7 @@ fun AboutCore (
                     text        = packageInfo.versionName.toString(),
                     color       = MaterialTheme.colorScheme.onBackground,
                     style       = MaterialTheme.typography.titleMedium,
+                    textAlign   = TextAlign.Center
                 )
             }
 

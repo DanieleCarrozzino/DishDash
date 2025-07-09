@@ -13,6 +13,10 @@ import com.carrozzino.dishdash.ui.theme.BackDark2
 import com.carrozzino.dishdash.ui.theme.BackDark3
 import com.carrozzino.dishdash.ui.theme.BackDark4
 import com.carrozzino.dishdash.ui.theme.BackDark5
+import com.carrozzino.dishdash.ui.theme.OnBack4
+import com.carrozzino.dishdash.ui.theme.OnBack5
+import com.carrozzino.dishdash.ui.theme.OnBackDark4
+import com.carrozzino.dishdash.ui.theme.OnBackDark5
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -62,6 +66,10 @@ class ViewModelUtility() {
 
         fun getColorFromType(isVegetarian : Boolean, dark : Boolean = false) : Color {
             return if(dark && isVegetarian) BackDark4 else if(dark) BackDark5 else if(isVegetarian) Back4 else Back5
+        }
+
+        fun getColorFromTypeOver(isVegetarian : Boolean, dark : Boolean = false) : Color {
+            return if(dark && isVegetarian) OnBackDark4 else if(dark) OnBackDark5 else if(isVegetarian) OnBack4 else OnBack5
         }
 
         fun encodeToBase64(input: String): String {
