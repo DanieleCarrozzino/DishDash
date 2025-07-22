@@ -56,7 +56,7 @@ class ViewModelUtility() {
             R.drawable.focaccia, R.drawable.lasagna, R.drawable.meat, R.drawable.pizza, R.drawable.pasta,
             R.drawable.gnocchi, R.drawable.poke, R.drawable.vellutata, R.drawable.bread, R.drawable.chicken,
             R.drawable.meatballs, R.drawable.trofie, R.drawable.couscous, R.drawable.caprese, R.drawable.hummus,
-            R.drawable.toast
+            R.drawable.toast, R.drawable.bruschetta, R.drawable.lasagne_al_pesto
         )
 
         fun getColorFromId(id : Int, dark : Boolean = false) : Color {

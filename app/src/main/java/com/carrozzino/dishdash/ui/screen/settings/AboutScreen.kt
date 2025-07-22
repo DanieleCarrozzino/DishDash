@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -125,7 +126,20 @@ fun AboutCore (
         }
 
         Image(
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(0.7f),
+            modifier = Modifier
+                .padding(start = 30.dp)
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth(0.8f),
+            painter = painterResource(R.drawable.ilaria),
+            contentDescription = "Personal image"
+        )
+
+        Image(
+            modifier = Modifier
+                .padding(end = 30.dp)
+                .align(Alignment.TopCenter)
+                .fillMaxWidth(0.7f)
+                .rotate(180f),
             painter = painterResource(R.drawable.me),
             contentDescription = "Personal image"
         )

@@ -166,11 +166,22 @@ class FirebaseFirestoreRepository @Inject constructor(
 
             val list = mutableListOf<Recipe>()
             query.result?.documents?.forEach {
-                var recipe  = it.toObject(Recipe::class.java)
-                recipe      = recipe?.copy(serverId = it.id.toInt())
+                val recipeRaw  = it.toObject(Recipe::class.java)
+                recipeRaw?.let { internal ->
+                    val recipe = internal.copy(
+                        //isVegetarian = true,
+                        serverId = it.id.toInt())
 
-                mapMains[it.id.toInt()] = recipe ?: Recipe()
-                list.add(recipe ?: Recipe())
+//                    firestore.put("total_recipes",
+//                        document    = it.id,
+//                        values      = recipe.toHashMap()
+//                    )
+
+                    mapMains[it.id.toInt()] = recipe
+                    list.add(recipe)
+                }
+
+
             }
 
             _state.update { current -> current.copy(listRecipes = current.listRecipes + list) }
